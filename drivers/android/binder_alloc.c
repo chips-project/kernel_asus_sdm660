@@ -28,6 +28,8 @@
 #include <linux/slab.h>
 #include <linux/sched.h>
 #include <linux/list_lru.h>
+#include <linux/ratelimit.h>
+
 #include "binder_alloc.h"
 #include "binder_trace.h"
 
@@ -244,7 +246,7 @@ static int binder_update_page_range(struct binder_alloc *alloc, int allocate,
 	}
 
 	if (!vma && need_mm) {
-		pr_err("%d: binder_alloc_buf failed to map pages in userspace, no vma\n",
+		pr_err_ratelimited("%d: binder_alloc_buf failed to map pages in userspace, no vma\n",
 			alloc->pid);
 		goto err_no_vma;
 	}
