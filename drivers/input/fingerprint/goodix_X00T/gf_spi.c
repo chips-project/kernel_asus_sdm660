@@ -44,6 +44,7 @@
 #include "gf_spi.h"
 
 #include "../common_X00T/fingerprint_common.h"
+#include "../fingerprintd.h"
 
 #if defined(USE_SPI_BUS)
 #include <linux/spi/spi.h>
@@ -624,6 +625,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 		switch (blank) {
 		case FB_BLANK_POWERDOWN:
 			if (gf_dev->device_available == 1) {
+				set_fingerprintd_nice(MIN_NICE);
 				gf_dev->fb_black = 1;
 #if defined(GF_NETLINK_ENABLE)
 				temp = GF_NET_EVENT_FB_BLACK;
@@ -637,6 +639,7 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 			break;
 		case FB_BLANK_UNBLANK:
 			if (gf_dev->device_available == 1) {
+				set_fingerprintd_nice(0);
 				gf_dev->fb_black = 0;
 #if defined(GF_NETLINK_ENABLE)
 				temp = GF_NET_EVENT_FB_UNBLACK;

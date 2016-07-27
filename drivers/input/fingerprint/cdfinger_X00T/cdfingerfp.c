@@ -44,6 +44,7 @@
 #include <linux/sched.h>
 /* Huaqin modify for cpu_boost by leiyu at 2018/04/25 end */
 #include "../common_X00T/fingerprint_common.h"
+#include "../fingerprintd.h"
 
 typedef struct key_report {
     int key;
@@ -513,6 +514,7 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
     blank = *(int*)evdata->data;
     switch (blank) {
         case FB_BLANK_UNBLANK:
+		set_fingerprintd_nice(0);
 		mutex_lock(&g_cdfingerfp_data->buf_lock);
 		screen_status = 1;
 		if (isInKeyMode == 0)
@@ -521,6 +523,7 @@ static int cdfinger_fb_notifier_callback(struct notifier_block* self,
 		printk("sunlin==FB_BLANK_UNBLANK==\n");
             break;
         case FB_BLANK_POWERDOWN:
+		set_fingerprintd_nice(MIN_NICE);
 		mutex_lock(&g_cdfingerfp_data->buf_lock);
 		screen_status = 0;
 		if (isInKeyMode == 0)
