@@ -519,8 +519,8 @@ static void msm_vfe44_process_epoch_irq(struct vfe_device *vfe_dev,
 					MSM_ISP_COMP_IRQ_EPOCH);
 		msm_isp_update_error_frame_count(vfe_dev);
 		if (vfe_dev->axi_data.src_info[VFE_PIX_0].raw_stream_count > 0
-			&& vfe_dev->axi_data.src_info[VFE_PIX_0].
-			stream_count == 0) {
+				&& vfe_dev->axi_data.src_info[VFE_PIX_0].
+				stream_count == 0) {
 			ISP_DBG("%s: SOF IRQ\n", __func__);
 			msm_isp_notify(vfe_dev, ISP_EVENT_SOF, VFE_PIX_0, ts);
 			msm_isp_process_reg_upd_epoch_irq(vfe_dev, VFE_PIX_0,
