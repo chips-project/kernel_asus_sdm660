@@ -8477,7 +8477,10 @@ sap_restart:
 		cds_ctx->sap_restart_chan_switch_cb(ap_adapter,
 				hdd_ap_ctx->sapConfig.channel,
 				hdd_ap_ctx->sapConfig.ch_params.ch_width);
+		qdf_mutex_release(&cds_ctx->qdf_conc_list_lock);
 	} else {
+		/* release mutex to avoid dead lock*/
+		qdf_mutex_release(&cds_ctx->qdf_conc_list_lock);
 		cds_restart_sap(ap_adapter);
 	}
 end:
