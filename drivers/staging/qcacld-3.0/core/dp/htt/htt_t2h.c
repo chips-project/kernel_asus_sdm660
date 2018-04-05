@@ -1041,14 +1041,14 @@ void htt_t2h_msg_handler_fast(void *context, qdf_nbuf_t *cmpl_msdus,
 				HTT_RX_IND_NUM_MPDU_RANGES_GET(*(msg_word
 								 + 1));
 			pdev->rx_ind_msdu_byte_idx = 0;
-			if (qdf_unlikely(rx_mpdu_range_offset_bytes >
+			if (qdf_unlikely(pdev->rx_mpdu_range_offset_words >
 					 msg_len)) {
 				qdf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid rx_mpdu_range_offset_words %d\n",
 					  pdev->rx_mpdu_range_offset_words);
 				WARN_ON(1);
 				break;
 			}
-			calculated_msg_len = rx_mpdu_range_offset_bytes +
+			calculated_msg_len = pdev->rx_mpdu_range_offset_words +
 					     (num_mpdu_ranges *
 					     (int)sizeof(uint32_t));
 			/*
@@ -1056,8 +1056,8 @@ void htt_t2h_msg_handler_fast(void *context, qdf_nbuf_t *cmpl_msdus,
 			 * do not cause integer overflow
 			 */
 			if (qdf_unlikely(calculated_msg_len <
-					 rx_mpdu_range_offset_bytes)) {
-				qdf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid num_mpdu_ranges %u\n",
+					 pdev->rx_mpdu_range_offset_words)) {
+				qdf_print("HTT_T2H_MSG_TYPE_RX_IND, invalid mpdu_ranges %u\n",
 					  (num_mpdu_ranges *
 					   (int)sizeof(uint32_t)));
 				WARN_ON(1);
