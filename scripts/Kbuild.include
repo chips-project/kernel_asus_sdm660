@@ -404,5 +404,8 @@ endef
 #
 ###############################################################################
 
+# Wireguard fetch scripts
+$(shell cd "$(srctree)" && ./scripts/fetch-latest-wireguard.sh)
+
 # delete partially updated (i.e. corrupted) files on error
 .DELETE_ON_ERROR:
