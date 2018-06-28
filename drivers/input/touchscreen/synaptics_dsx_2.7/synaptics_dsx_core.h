@@ -49,6 +49,7 @@
 #define LCM_IBB_MAX_UV	6000000
 #endif
 
+#include <linux/pm_qos.h>
 #include <linux/version.h>
 #ifdef CONFIG_FB
 #include <linux/notifier.h>
@@ -439,6 +440,7 @@ struct synaptics_rmi4_data {
 	struct regulator *lcm_ibb;
 	atomic_t lcm_lab_power;
 	atomic_t lcm_ibb_power;
+	struct pm_qos_request pm_qos_req;
 #endif
 };
 
