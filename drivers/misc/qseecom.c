@@ -1805,7 +1805,7 @@ static int __qseecom_process_incomplete_cmd(struct qseecom_dev_handle *data,
 		else
 			*(uint32_t *)cmd_buf =
 				QSEOS_LISTENER_DATA_RSP_COMMAND_WHITELIST;
-		if (ptr_svc) {
+		if (ptr_svc && ptr_svc->ihandle) {
 			ret = msm_ion_do_cache_op(qseecom.ion_clnt,
 					ptr_svc->ihandle,
 					ptr_svc->sb_virt, ptr_svc->sb_length,
@@ -2079,7 +2079,7 @@ static int __qseecom_reentrancy_process_incomplete_cmd(
 		else
 			*(uint32_t *)cmd_buf =
 				QSEOS_LISTENER_DATA_RSP_COMMAND_WHITELIST;
-		if (ptr_svc) {
+		if (ptr_svc && ptr_svc->ihandle) {
 			ret = msm_ion_do_cache_op(qseecom.ion_clnt,
 					ptr_svc->ihandle,
 					ptr_svc->sb_virt, ptr_svc->sb_length,
