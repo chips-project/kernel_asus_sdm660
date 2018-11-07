@@ -29,6 +29,7 @@
 #include <linux/iommu.h>
 #include <linux/vmalloc.h>
 #include <linux/swiotlb.h>
+#include <linux/dma-removed.h>
 
 #include <asm/cacheflush.h>
 #include <asm/tlbflush.h>
@@ -1124,8 +1125,12 @@ static void __iommu_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
 void arch_setup_dma_ops(struct device *dev, u64 dma_base, u64 size,
 			struct iommu_ops *iommu, bool coherent)
 {
-	if (!dev->archdata.dma_ops)
-		dev->archdata.dma_ops = &swiotlb_dma_ops;
+	if (!dev->archdata.dma_ops) {
+		if (dev->removed_mem)
+			set_dma_ops(dev, &removed_dma_ops);
+		else
+			dev->archdata.dma_ops = &swiotlb_dma_ops;
+	}
 
 	dev->archdata.dma_coherent = coherent;
 	__iommu_setup_dma_ops(dev, dma_base, size, iommu);
