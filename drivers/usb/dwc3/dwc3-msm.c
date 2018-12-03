@@ -3935,6 +3935,11 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 		pm_runtime_enable(mdwc->dev);
 		/* fall-through */
 	case DRD_STATE_IDLE:
+		if (test_bit(WAIT_FOR_LPM, &mdwc->inputs)) {
+			dev_dbg(mdwc->dev, "still not in lpm, wait.\n");
+			break;
+		}
+
 		if (!test_bit(ID, &mdwc->inputs)) {
 			dev_dbg(mdwc->dev, "!id\n");
 			mdwc->drd_state = DRD_STATE_HOST_IDLE;
