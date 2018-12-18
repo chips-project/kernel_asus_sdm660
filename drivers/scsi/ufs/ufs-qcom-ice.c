@@ -224,6 +224,14 @@ int ufs_qcom_ice_init(struct ufs_qcom_host *qcom_host)
 	}
 
 	qcom_host->dbg_print_en |= UFS_QCOM_ICE_DEFAULT_DBG_PRINT_EN;
+	ice_workqueue = alloc_workqueue("ice-set-key",
+			WQ_MEM_RECLAIM | WQ_HIGHPRI, 0);
+	if (!ice_workqueue) {
+		dev_err(ufs_dev, "%s: workqueue allocation failed.\n",
+			__func__);
+		err = -ENOMEM;
+		goto out;
+	}
 	INIT_WORK(&qcom_host->ice_cfg_work, ufs_qcom_ice_cfg_work);
 
 out:
@@ -277,6 +285,20 @@ int ufs_qcom_ice_req_setup(struct ufs_qcom_host *qcom_host,
 			 * propagate so it will be re-queued.
 			 */
 			if (err == -EAGAIN) {
+				if (!ice_workqueue) {
+					dev_err(qcom_host->hba->dev,
+						"%s: error %d workqueue NULL\n",
+						__func__, err);
+					/*
+					 * over write the error code to halt
+					 * the request from upper layer as
+					 * system is possibly in low memory
+					 * state. Give system a chance to
+					 * recover and reinitialize ice driver.
+					 */
+					return -EINVAL;
+				}
+
 				dev_dbg(qcom_host->hba->dev,
 					"%s: scheduling task for ice setup\n",
 					__func__);
@@ -396,6 +418,19 @@ int ufs_qcom_ice_cfg_start(struct ufs_qcom_host *qcom_host,
 			 * propagate so it will be re-queued.
 			 */
 			if (err == -EAGAIN) {
+				if (!ice_workqueue) {
+					dev_err(qcom_host->hba->dev,
+						"%s: error %d workqueue NULL\n",
+						__func__, err);
+					/*
+					 * over write the error code to halt
+					 * the request from upper layer as
+					 * system is possibly in low memory
+					 * state. Give system a chance to
+					 * recover and reinitialize ice driver.
+					 */
+					return -EINVAL;
+				}
 
 				dev_dbg(qcom_host->hba->dev,
 					"%s: scheduling task for ice setup\n",
