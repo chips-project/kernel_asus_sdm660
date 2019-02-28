@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
  */
- 
 #define TFA9888_I2CVERSION 18
-
 typedef enum nxpTfa2BfEnumList {
     TFA2_BF_PWDN  = 0x0000,    /*!< Powerdown selection                                */
     TFA2_BF_I2CR  = 0x0010,    /*!< I2C Reset - Auto clear                             */
@@ -796,7 +794,6 @@ typedef enum nxpTfa2BfEnumList {
    { 0xffff,"Unknown bitfield enum" }   /* not found */\
 };
 
-#ifdef CONFIG_MACH_ASUS_X00T
 #define TFA2_BITNAMETABLE static tfaBfName_t Tfa2BitNames[]= {\
    { 0x0, "powerdown"},    /* Powerdown selection                               , */\
    { 0x10, "reset"},    /* I2C Reset - Auto clear                            , */\
@@ -1447,7 +1444,6 @@ typedef enum nxpTfa2BfEnumList {
    { 0xff05, "calibr_osc_delta_ndiv"},    /* Calibration data for OSC1M, signed number representation, */\
    { 0xffff,"Unknown bitfield enum" }    /* not found */\
 };
-#endif /* CONFIG_MACH_ASUS_X00T */
 
 enum tfa2_irq {
 	tfa2_irq_stvdds = 0,

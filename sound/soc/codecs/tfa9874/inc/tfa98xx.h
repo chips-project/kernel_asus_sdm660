@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -32,10 +32,6 @@
 #define TFA98XX_FLAG_REMOVE_PLOP_NOISE	(1 << 6)
 #define TFA98XX_FLAG_LP_MODES	        (1 << 7)
 #define TFA98XX_FLAG_TDM_DEVICE         (1 << 8)
-
-#ifdef TFA9874_NONDSP_STEREO
-#define TFA98XX_FLAG_CHIP_SELECTED      (1 << 16)
-#endif
 
 #define TFA98XX_NUM_RATES		9
 
@@ -113,10 +109,6 @@ struct tfa98xx {
 	int vstep;
 	int profile;
 	int prof_vsteps[TFACONT_MAXPROFS]; /* store vstep per profile (single device) */
-
-#ifdef TFA9874_NONDSP_STEREO
-	unsigned int nonDSP_stereo;
-#endif
 
 #ifdef CONFIG_DEBUG_FS
 	struct dentry *dbg_dir;

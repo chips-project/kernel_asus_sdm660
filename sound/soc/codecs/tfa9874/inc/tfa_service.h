@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -20,7 +20,7 @@ extern "C" {
 #include "NXP_I2C.h"
 #endif
 
-#define TFA98XX_API_REV_STR "v6.5.0"
+#define TFA98XX_API_REV_STR "v6.5.5"
 
 #include "tfa_device.h"
 
@@ -752,7 +752,7 @@ enum Tfa98xx_Error mem_write(struct tfa_device *tfa, unsigned short address, int
 enum Tfa98xx_Error mem_read(struct tfa_device *tfa, unsigned int start_offset, int num_words, int *pValues);
 
 enum Tfa98xx_Error dsp_partial_coefficients(struct tfa_device *tfa, uint8_t *prev, uint8_t *next);
-
+int is_94_N2_device(struct tfa_device *tfa);
 /**
  * write/read raw msg functions:
  * the buffer is provided in little endian format, each word occupying 3 bytes, length is in bytes.
@@ -820,7 +820,6 @@ uint16_t tfa_get_bf_value(const uint16_t bf, const uint16_t reg_value);
 int tfa_write_reg(struct tfa_device *tfa, const uint16_t bf, const uint16_t reg_value);
 int tfa_read_reg(struct tfa_device *tfa, const uint16_t bf);
 
-#ifdef CONFIG_MACH_ASUS_X00T
 /* bitfield */
 /** 
  * get the datasheet or bitfield name corresponding to the bitfield number
@@ -855,7 +854,6 @@ uint16_t tfaContBfEnum(const char *name, unsigned short rev);
 * @param name is the bitfield name for which to get the bitfield number
  */
 uint16_t tfaContBfEnumAny(const char *name);
-#endif /* CONFIG_MACH_ASUS_X00T */
 
 #define TFA_FAM(tfa, fieldname) ((tfa->tfa_family == 1) ? TFA1_BF_##fieldname :  TFA2_BF_##fieldname)
 #define TFA_FAM_FW(tfa, fwname) ((tfa->tfa_family == 1) ? TFA1_FW_##fwname :  TFA2_FW_##fwname)

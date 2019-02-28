@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -7,6 +7,7 @@
  *
  */
 
+#include "dbgprint.h"
 #include "tfa_container.h"
 #include "tfa.h"
 #include "tfa98xx_tfafieldnames.h"
@@ -667,12 +668,6 @@ enum Tfa98xx_Error tfaContWriteFile(struct tfa_device *tfa,  nxpTfaFileDsc_t *fi
 		} else {
 			err = tfaContWriteVstep(tfa, (nxpTfaVolumeStep2File_t *)hdr, vstep_idx);
 		}
-
-		/* If writing the vstep was succesfull, set new current vstep */
-		if(err == Tfa98xx_Error_Ok) {
-			tfa->vstep = vstep_idx;
-		}
-
 		break;
 	case speakerHdr:
 		if (tfa->tfa_family == 2) {
@@ -885,6 +880,11 @@ enum Tfa98xx_Error tfaRunWriteBitfield(struct tfa_device *tfa,  nxpTfaBitfield_t
         
 	value=bf.value;
 	bfUni.field = bf.field;
+#ifdef TFA_DEBUG
+	if (tfa->verbose)
+		pr_debug("bitfield: %s=0x%x (0x%x[%d..%d]=0x%x)\n", tfaContBfName(bfUni.field, tfa->rev), value,
+			bfUni.Enum.address, bfUni.Enum.pos, bfUni.Enum.pos+bfUni.Enum.len, value);
+#endif
         error = tfa_set_bf(tfa, bfUni.field, value);
 
 	return error;
@@ -999,6 +999,19 @@ static enum Tfa98xx_Error tfaRunWriteFilter(struct tfa_device *tfa, nxpTfaContBi
 		}
 	}
 
+#ifdef TFA_DEBUG
+	if (tfa->verbose) {
+		if (bq->aa.index==13) {
+			pr_debug("=%d,%.0f,%.2f \n",
+				bq->in.type, bq->in.cutOffFreq, bq->in.leakage);
+		} else if(bq->aa.index >= 10 && bq->aa.index <= 12) {
+			pr_debug("=%d,%.0f,%.1f,%.1f \n", bq->aa.type,
+				bq->aa.cutOffFreq, bq->aa.rippleDb, bq->aa.rolloff);
+		} else {
+			pr_debug("= unsupported filter index \n");
+		}
+	}
+#endif
 
 	/* Because we can load the same filters multiple times
 	 * For example: When we switch profile we re-write in operating mode.

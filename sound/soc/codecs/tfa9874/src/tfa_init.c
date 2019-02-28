@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -7,6 +7,7 @@
  *
  */
 
+#include "dbgprint.h"
 #include "tfa_service.h"
 #include "tfa_internal.h"
 #include "tfa_container.h"
@@ -101,7 +102,7 @@ int tfa_set_swprofile(struct tfa_device *tfa, unsigned short new_value)
 	int mtpk, active_value = tfa->profile;
 
 	/* Also set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* for TFA1 devices */
 	/* it's in MTP shadow, so unlock if not done already */
@@ -123,7 +124,7 @@ static int tfa_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 	int mtpk, active_value = tfa->vstep;
 
 	/* Also set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* for TFA1 devices */
 	/* it's in MTP shadow, so unlock if not done already */
@@ -138,10 +139,6 @@ static int tfa_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 static int tfa_get_swvstep(struct tfa_device *tfa)
 {
 	int value = 0;
-
-	if (tfa->vstep>0)
-		return tfa->vstep - 1;
-
 	/* Set the new value in the hw register */
 	value = TFA_GET_BF(tfa, SWVSTEP);
 
@@ -212,7 +209,7 @@ static int tfanone_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 	int active_value = tfa_dev_get_swprof(tfa);
 
 	/* Set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* Set the new value in the hw register */
 	swprof = new_value;
@@ -228,15 +225,13 @@ static int tfanone_get_swprofile(struct tfa_device *tfa)
 
 static int tfanone_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 {
-	int active_value = tfa_dev_get_swvstep(tfa);
-
 	/* Set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfanone_swvstep = new_value;
 
-	return active_value;
+	return new_value;
 }
 
 static int tfanone_get_swvstep(struct tfa_device *tfa)
@@ -292,7 +287,7 @@ static enum Tfa98xx_Error tfa9912_specific(struct tfa_device *tfa)
 	if (tfa->rev == 0x1a13) {
 
 		/* ----- generated code start ----- */
-		/* -----  version 1.41  ----- */
+		/* -----  version 1.43  ----- */
 		reg_write(tfa, 0x00, 0x0255); //POR=0x0245
 		reg_write(tfa, 0x01, 0x838a); //POR=0x83ca
 		reg_write(tfa, 0x02, 0x2dc8); //POR=0x2828
@@ -324,60 +319,6 @@ static enum Tfa98xx_Error tfa9912_specific(struct tfa_device *tfa)
 	}
 
 	return error;
-}
-
-static enum Tfa98xx_Error tfa9912_tfa_dsp_write_tables(struct tfa_device *tfa, int sample_rate)
-{
-	unsigned char buffer[15] = { 0 };
-	int size = 15 * sizeof(char);
-
-	/* Write the fractional delay in the hardware register 'cs_frac_delay' */
-	switch (sample_rate) {
-	case 0:	/* 8kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 40);
-		break;
-	case 1:	/* 11.025KHz */
-		TFA_SET_BF(tfa, FRACTDEL, 38);
-		break;
-	case 2:	/* 12kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 37);
-		break;
-	case 3:	/* 16kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 59);
-		break;
-	case 4:	/* 22.05KHz */
-		TFA_SET_BF(tfa, FRACTDEL, 56);
-		break;
-	case 5:	/* 24kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 56);
-		break;
-	case 6:	/* 32kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 52);
-		break;
-	case 7:	/* 44.1kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 48);
-		break;
-	case 8:
-	default:/* 48kHz */
-		TFA_SET_BF(tfa, FRACTDEL, 46);
-		break;
-	}
-
-	/* First copy the msg_id to the buffer */
-	buffer[0] = (uint8_t)0;
-	buffer[1] = (uint8_t)MODULE_FRAMEWORK + 128;
-	buffer[2] = (uint8_t)FW_PAR_ID_SET_SENSES_DELAY;
-
-	/* Required for all FS exept 8kHz (8kHz is all zero) */
-	if (sample_rate != 0) {
-		buffer[5] = 1;	/* Vdelay_P */
-		buffer[8] = 0;	/* Idelay_P */
-		buffer[11] = 1; /* Vdelay_S */
-		buffer[14] = 0; /* Idelay_S */
-	}
-
-	/* send SetSensesDelay msg */
-	return dsp_msg(tfa, size, (char *)buffer);
 }
 
 static enum Tfa98xx_Error tfa9912_factory_trimmer(struct tfa_device *tfa)
@@ -437,7 +378,7 @@ static int tfa9912_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 	int active_value = tfa_dev_get_swprof(tfa);
 
 	/* Set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9912_BF_SWPROFIL, new_value);
@@ -452,15 +393,13 @@ static int tfa9912_get_swprofile(struct tfa_device *tfa)
 
 static int tfa9912_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 {
-	int active_value = tfa_dev_get_swvstep(tfa);
-
 	/* Set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9912_BF_SWVSTEP, new_value);
 
-	return active_value;
+	return new_value;
 }
 
 static int tfa9912_get_swvstep(struct tfa_device *tfa)
@@ -562,7 +501,6 @@ void tfa9912_ops(struct tfa_device_ops *ops)
 	ops->tfa_init = tfa9912_specific;
 	/* PLMA5322, PLMA5528 - Limits values of DCVOS and DCVOF. */
 	ops->reg_write = tfa9912_reg_write;
-	ops->dsp_write_tables = tfa9912_tfa_dsp_write_tables;
 	ops->factory_trimmer = tfa9912_factory_trimmer;
 	ops->auto_copy_mtp_to_iic = tfa9912_auto_copy_mtp_to_iic;
 	ops->set_swprof = tfa9912_set_swprofile;
@@ -619,7 +557,7 @@ static enum Tfa98xx_Error tfa9872_specific(struct tfa_device *tfa)
 		case 0x2b72:
 		case 0x3b72:
 			/* ----- generated code start ----- */
-			/* ----- TFA9872 Probus Registers map N1B2 - Version 21 (10/19/2016) ----- */
+			/*  -----  version 25.00 ----- */
 			reg_write(tfa, 0x02, 0x2dc8); //POR=0x2828
 			reg_write(tfa, 0x20, 0x0890); //POR=0x2890
 			reg_write(tfa, 0x22, 0x043c); //POR=0x045c
@@ -665,7 +603,7 @@ static int tfa9872_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 	int active_value = tfa_dev_get_swprof(tfa);
 
 	/* Set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9872_BF_SWPROFIL, new_value);
@@ -680,15 +618,14 @@ static int tfa9872_get_swprofile(struct tfa_device *tfa)
 
 static int tfa9872_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 {
-	int active_value = tfa_dev_get_swvstep(tfa);
 
 	/* Set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9872_BF_SWVSTEP, new_value);
 
-	return active_value;
+	return new_value;
 }
 
 static int tfa9872_get_swvstep(struct tfa_device *tfa)
@@ -783,21 +720,20 @@ static enum Tfa98xx_Error tfa9874_specific(struct tfa_device *tfa)
 			break;
 		case 0x0c74:
 			/* ----- generated code start ----- */
-			reg_write(tfa, 0x02, 0x22a8); //POR=0x25c8
-			reg_write(tfa, 0x51, 0x0020); //POR=0x0000
+			/* V1.16 */
+			reg_write(tfa, 0x02, 0x22c8); //POR=0x25c8
 			reg_write(tfa, 0x52, 0x57dc); //POR=0x56dc
-			reg_write(tfa, 0x58, 0x16a4); //POR=0x1614
+			reg_write(tfa, 0x53, 0x003e); //POR=0x001e
+			reg_write(tfa, 0x56, 0x0400); //POR=0x0600
 			reg_write(tfa, 0x61, 0x0110); //POR=0x0198
-			reg_write(tfa, 0x6f, 0x00a3); //POR=0x01a3
+			reg_write(tfa, 0x6f, 0x00a5); //POR=0x01a3
 			reg_write(tfa, 0x70, 0x07f8); //POR=0x06f8
 			reg_write(tfa, 0x73, 0x0047); //POR=0x0045
-			reg_write(tfa, 0x74, 0x5068); //POR=0xcc80
-			reg_write(tfa, 0x75, 0x0d28); //POR=0x1138
-			reg_write(tfa, 0x83, 0x0595); //POR=0x061a
-			reg_write(tfa, 0x84, 0x0001); //POR=0x0021
-			reg_write(tfa, 0x85, 0x0001); //POR=0x0003
-			reg_write(tfa, 0x88, 0x0000); //POR=0x0002
-			reg_write(tfa, 0xc4, 0x2001); //POR=0x0001
+			reg_write(tfa, 0x74, 0x5098); //POR=0xcc80
+			reg_write(tfa, 0x75, 0x8d28); //POR=0x1138
+			reg_write(tfa, 0x80, 0x0000); //POR=0x0003
+			reg_write(tfa, 0x83, 0x0799); //POR=0x061a
+			reg_write(tfa, 0x84, 0x0081); //POR=0x0021
 			/* ----- generated code end   ----- */
 			break;
 		default:
@@ -813,7 +749,7 @@ static int tfa9874_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 	int active_value = tfa_dev_get_swprof(tfa);
 
 	/* Set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9874_BF_SWPROFIL, new_value);
@@ -828,15 +764,14 @@ static int tfa9874_get_swprofile(struct tfa_device *tfa)
 
 static int tfa9874_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 {
-	int active_value = tfa_dev_get_swvstep(tfa);
 
 	/* Set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* Set the new value in the hw register */
 	tfa_set_bf_volatile(tfa, TFA9874_BF_SWVSTEP, new_value);
 
-	return active_value;
+	return new_value;
 }
 
 static int tfa9874_get_swvstep(struct tfa_device *tfa)
@@ -1519,9 +1454,12 @@ static int tfa9894_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 	int active_value = tfa_dev_get_swprof(tfa);
 
 	/* Set the new value in the struct */
-	tfa->profile = new_value;
+	tfa->profile = new_value-1;
 
 	/* Set the new value in the hw register */
+	if (is_94_N2_device(tfa))
+	tfa_set_bf_volatile(tfa, TFA9894N2_BF_SWPROFIL, new_value);
+	else	
 	tfa_set_bf_volatile(tfa, TFA9894_BF_SWPROFIL, new_value);
 
 	return active_value;
@@ -1529,25 +1467,32 @@ static int tfa9894_set_swprofile(struct tfa_device *tfa, unsigned short new_valu
 
 static int tfa9894_get_swprofile(struct tfa_device *tfa)
 {
-	return tfa_get_bf(tfa, TFA9894_BF_SWPROFIL) - 1;
+		if (is_94_N2_device(tfa))
+			return tfa_get_bf(tfa, TFA9894N2_BF_SWPROFIL) - 1;
+		else
+	        return tfa_get_bf(tfa, TFA9894_BF_SWPROFIL) - 1;
 }
 
 static int tfa9894_set_swvstep(struct tfa_device *tfa, unsigned short new_value)
 {
-	int active_value = tfa_dev_get_swvstep(tfa);
-
 	/* Set the new value in the struct */
-	tfa->vstep = new_value;
+	tfa->vstep = new_value-1;
 
 	/* Set the new value in the hw register */
-	tfa_set_bf_volatile(tfa, TFA9894_BF_SWVSTEP, new_value);
+	if (is_94_N2_device(tfa))
+			tfa_set_bf_volatile(tfa, TFA9894N2_BF_SWVSTEP, new_value);
+	else
+			tfa_set_bf_volatile(tfa, TFA9894_BF_SWVSTEP, new_value);
 
-	return active_value;
+	return new_value;
 }
 
 static int tfa9894_get_swvstep(struct tfa_device *tfa)
 {
-	return tfa_get_bf(tfa, TFA9894_BF_SWVSTEP) - 1;
+		if (is_94_N2_device(tfa))
+		 return tfa_get_bf(tfa, TFA9894N2_BF_SWVSTEP) - 1;	
+		else
+	     return tfa_get_bf(tfa, TFA9894_BF_SWVSTEP) - 1;
 }
 
 static int tfa9894_get_mtpb(struct tfa_device *tfa) {
@@ -1555,7 +1500,10 @@ static int tfa9894_get_mtpb(struct tfa_device *tfa) {
 	int value = 0;
 
 	/* Set the new value in the hw register */
-	value = tfa_get_bf(tfa, TFA9894_BF_MTPB);
+	if (is_94_N2_device(tfa))
+	 value = tfa_get_bf(tfa, TFA9894N2_BF_MTPB);	
+	else	
+	 value = tfa_get_bf(tfa, TFA9894_BF_MTPB);
 
 	return value;
 }
@@ -1572,7 +1520,10 @@ static int tfa9894_get_mtpb(struct tfa_device *tfa) {
 static enum Tfa98xx_Error tfa9894_set_osc_powerdown(struct tfa_device *tfa, int state)
 {
 	if (state == 1 || state == 0) {
-		return -tfa_set_bf(tfa, TFA9894_BF_MANAOOSC, (uint16_t)state);
+	 if (is_94_N2_device(tfa))
+			 return -tfa_set_bf(tfa, TFA9894N2_BF_MANAOOSC, (uint16_t)state);	
+	 else
+		    return -tfa_set_bf(tfa, TFA9894_BF_MANAOOSC, (uint16_t)state);
 	}
 
 	return Tfa98xx_Error_Bad_Parameter;
@@ -1582,7 +1533,10 @@ static enum Tfa98xx_Error tfa9894_faim_protect(struct tfa_device *tfa, int statu
 {
 	enum Tfa98xx_Error ret = Tfa98xx_Error_Ok;
 	/* 0b = FAIM protection enabled 1b = FAIM protection disabled*/
-	ret = tfa_set_bf_volatile(tfa, TFA9894_BF_OPENMTP, (uint16_t)(status));
+	if (is_94_N2_device(tfa))
+		ret = tfa_set_bf_volatile(tfa, TFA9894N2_BF_OPENMTP, (uint16_t)(status));
+	else
+		ret = tfa_set_bf_volatile(tfa, TFA9894_BF_OPENMTP, (uint16_t)(status));
 	return ret;
 }
 
@@ -1593,13 +1547,15 @@ static enum Tfa98xx_Error tfa9894_specific(struct tfa_device *tfa)
 
 	if (tfa->in_use == 0)
 		return Tfa98xx_Error_NotOpen;
-
+	if (tfa->verbose)
+		if (is_94_N2_device(tfa))
+		 pr_debug("check_correct\n");
 	/* Unlock keys to write settings */
 	error = reg_write(tfa, 0x0F, 0x5A6B);
 	error = reg_read(tfa, 0xFB, &value);
 	xor = value ^ 0x005A;
 	error = reg_write(tfa, 0xA0, xor);
-
+	pr_debug("Device REFID:%x\n", tfa->rev);
 	/* The optimal settings */
 	if (tfa->rev == 0x0a94) {
 		/* V36 */
@@ -1618,33 +1574,55 @@ static enum Tfa98xx_Error tfa9894_specific(struct tfa_device *tfa)
 		reg_write(tfa, 0x82, 0x0104); //POR=0x0044
 		/* ----- generated code end   ----- */
 	} else if (tfa->rev == 0x1a94) {
-		/* V7 */
+		/* V17 */
 		/* ----- generated code start ----- */
 		reg_write(tfa, 0x00, 0xa245); //POR=0x8245
+		reg_write(tfa, 0x01, 0x15da); //POR=0x11ca
 		reg_write(tfa, 0x02, 0x5288); //POR=0x55c8
 		reg_write(tfa, 0x52, 0xbe17); //POR=0xb617
+		reg_write(tfa, 0x53, 0x0dbe); //POR=0x0d9e
 		reg_write(tfa, 0x56, 0x05c3); //POR=0x07c3
 		reg_write(tfa, 0x57, 0x0344); //POR=0x0366
 		reg_write(tfa, 0x61, 0x0032); //POR=0x0073
 		reg_write(tfa, 0x71, 0x00cf); //POR=0x018d
 		reg_write(tfa, 0x72, 0x34a9); //POR=0x44e8
-		reg_write(tfa, 0x73, 0x3808); //POR=0x3806
+		reg_write(tfa, 0x73, 0x38c8); //POR=0x3806
 		reg_write(tfa, 0x76, 0x0067); //POR=0x0065
 		reg_write(tfa, 0x80, 0x0000); //POR=0x0003
-		reg_write(tfa, 0x81, 0x5715); //POR=0x561a
+		reg_write(tfa, 0x81, 0x5799); //POR=0x561a
 		reg_write(tfa, 0x82, 0x0104); //POR=0x0044
 		/* ----- generated code end ----- */
 
 	}
-
+	else if (tfa->rev == 0x2a94 || tfa->rev == 0x3a94) {
+/* ----- generated code start ----- */
+/* -----  version 25.00 ----- */
+	reg_write(tfa, 0x01, 0x15da); //POR=0x11ca
+	reg_write(tfa, 0x02, 0x51e8); //POR=0x55c8
+	reg_write(tfa, 0x04, 0x0200); //POR=0x0000
+	reg_write(tfa, 0x52, 0xbe17); //POR=0xb617
+	reg_write(tfa, 0x53, 0x0dbe); //POR=0x0d9e
+	reg_write(tfa, 0x57, 0x0344); //POR=0x0366
+	reg_write(tfa, 0x61, 0x0032); //POR=0x0073
+	reg_write(tfa, 0x71, 0x6ecf); //POR=0x6f8d
+	reg_write(tfa, 0x72, 0xb4a9); //POR=0x44e8
+	reg_write(tfa, 0x73, 0x38c8); //POR=0x3806
+	reg_write(tfa, 0x76, 0x0067); //POR=0x0065
+	reg_write(tfa, 0x80, 0x0000); //POR=0x0003
+	reg_write(tfa, 0x81, 0x5799); //POR=0x561a
+	reg_write(tfa, 0x82, 0x0104); //POR=0x0044
+/* ----- generated code end   ----- */
+	}
 	return error;
 }
 
 static enum Tfa98xx_Error
 tfa9894_set_mute(struct tfa_device *tfa, int mute)
 {
-	tfa_set_bf(tfa, TFA9894_BF_CFSM, (const uint16_t)mute);
-
+	if (is_94_N2_device(tfa))
+	     tfa_set_bf(tfa, TFA9894N2_BF_CFSM, (const uint16_t)mute);
+	else 
+		 tfa_set_bf(tfa, TFA9894_BF_CFSM, (const uint16_t)mute);
 	return Tfa98xx_Error_Ok;
 }
 
@@ -1653,7 +1631,10 @@ static enum Tfa98xx_Error tfa9894_dsp_system_stable(struct tfa_device *tfa, int 
 	enum Tfa98xx_Error error = Tfa98xx_Error_Ok;
 
 	/* check CLKS: ready if set */
-	*ready = tfa_get_bf(tfa, TFA9894_BF_CLKS)==1;
+	 if (is_94_N2_device(tfa))
+		*ready = tfa_get_bf(tfa, TFA9894N2_BF_CLKS)==1;
+	 else	 
+		*ready = tfa_get_bf(tfa, TFA9894_BF_CLKS)==1;
 
 	return error;
 }

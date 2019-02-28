@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -10,7 +10,8 @@
 #ifndef _TFA9874_TFAFIELDNAMES_H
 #define _TFA9874_TFAFIELDNAMES_H
 
-#define TFA9874_I2CVERSION    1
+
+#define TFA9874_I2CVERSION    1.16
 
 typedef enum nxpTfa9874BfEnumList {
     TFA9874_BF_PWDN  = 0x0000,    /*!< Powerdown selection                                */
@@ -162,6 +163,7 @@ typedef enum nxpTfa9874BfEnumList {
     TFA9874_BF_DCTRACK= 0x7430,    /*!< Boost algorithm selection, effective only when boost_intelligent is set to 1 */
     TFA9874_BF_DCTRIP= 0x7444,    /*!< 1st Adaptive boost trip levels, effective only when DCIE is set to 1 */
     TFA9874_BF_DCHOLD= 0x7494,    /*!< Hold time for DCDC booster, effective only when boost_intelligent is set to 1 */
+    TFA9874_BF_DCINT = 0x74e0,    /*!< Selection of data for adaptive boost algorithm, effective only when boost_intelligent is set to 1 */
     TFA9874_BF_DCTRIP2= 0x7534,    /*!< 2nd Adaptive boost trip levels, effective only when DCIE is set to 1 */
     TFA9874_BF_DCTRIPT= 0x7584,    /*!< Track Adaptive boost trip levels, effective only when boost_intelligent is set to 1 */
     TFA9874_BF_DCTRIPHYSTE= 0x75f0,    /*!< Enable hysteresis on booster trip levels           */
@@ -335,6 +337,7 @@ typedef enum nxpTfa9874BfEnumList {
    { 0x7430, "DCTRACK"},    /* Boost algorithm selection, effective only when boost_intelligent is set to 1, */\
    { 0x7444, "DCTRIP"},    /* 1st Adaptive boost trip levels, effective only when DCIE is set to 1, */\
    { 0x7494, "DCHOLD"},    /* Hold time for DCDC booster, effective only when boost_intelligent is set to 1, */\
+   { 0x74e0, "DCINT"},    /* Selection of data for adaptive boost algorithm, effective only when boost_intelligent is set to 1, */\
    { 0x7534, "DCTRIP2"},    /* 2nd Adaptive boost trip levels, effective only when DCIE is set to 1, */\
    { 0x7584, "DCTRIPT"},    /* Track Adaptive boost trip levels, effective only when boost_intelligent is set to 1, */\
    { 0x75f0, "DCTRIPHYSTE"},    /* Enable hysteresis on booster trip levels          , */\
@@ -360,7 +363,6 @@ typedef enum nxpTfa9874BfEnumList {
    { 0xffff,"Unknown bitfield enum" }   /* not found */\
 };
 
-#ifdef CONFIG_MACH_ASUS_X00T
 #define TFA9874_BITNAMETABLE static tfaBfName_t Tfa9874BitNames[]= {\
    { 0x0, "powerdown"},    /* Powerdown selection                               , */\
    { 0x10, "reset"},    /* I2C Reset - Auto clear                            , */\
@@ -807,7 +809,6 @@ typedef enum nxpTfa9874BfEnumList {
    { 0xff87, "spare_mtp7_15_08"},    /* SPARE                                             , */\
    { 0xffff,"Unknown bitfield enum" }    /* not found */\
 };
-#endif /* CONFIG_MACH_ASUS_X00T */
 
 enum tfa9874_irq {
 	tfa9874_irq_stvdds = 0,

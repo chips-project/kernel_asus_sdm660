@@ -1,14 +1,12 @@
 /*
- * Copyright (C) 2018 NXP Semiconductors, All Rights Reserved.
+ * Copyright (C) 2014 NXP Semiconductors, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  *
  */
- 
 #define TFA9897_I2CVERSION 34
-
 typedef enum nxpTfa1BfEnumList {
     TFA1_BF_VDDS  = 0x0000,    /*!< Power-on-reset flag                                */
     TFA1_BF_PLLS  = 0x0010,    /*!< PLL lock                                           */
@@ -385,7 +383,6 @@ typedef enum nxpTfa1BfEnumList {
    { 0xffff,"Unknown bitfield enum" }   /* not found */\
 };
 
-#ifdef CONFIG_MACH_ASUS_X00T
 #define TFA1_BITNAMETABLE static tfaBfName_t Tfa1BitNames[]= {\
    { 0x0, "flag_por"},    /* Power-on-reset flag                               , */\
    { 0x10, "flag_pll_lock"},    /* PLL lock                                          , */\
@@ -847,7 +844,6 @@ typedef enum nxpTfa1BfEnumList {
    { 0x8f0f, "production_data6"},    /* (key1 protected)                                  , */\
    { 0xffff,"Unknown bitfield enum" }    /* not found */\
 };
-#endif /* CONFIG_MACH_ASUS_X00T */
 
 enum tfa1_irq {
 	tfa1_irq_vdds = 0,
