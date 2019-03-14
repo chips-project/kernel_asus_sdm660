@@ -137,8 +137,7 @@ enum {
 	BINDER_DEBUG_PRIORITY_CAP           = 1U << 13,
 	BINDER_DEBUG_SPINLOCKS              = 1U << 14,
 };
-static uint32_t binder_debug_mask = BINDER_DEBUG_USER_ERROR |
-	BINDER_DEBUG_FAILED_TRANSACTION | BINDER_DEBUG_DEAD_TRANSACTION;
+static uint32_t binder_debug_mask = 0;
 module_param_named(debug_mask, binder_debug_mask, uint, 0644);
 
 static char *binder_devices_param = CONFIG_ANDROID_BINDER_DEVICES;
@@ -356,6 +355,8 @@ struct binder_error {
  * @min_priority:         minimum scheduling priority
  *                        (invariant after initialized)
  * @inherit_rt:           inherit RT scheduling policy from caller
+ * @txn_security_ctx:     require sender's security context
+ *                        (invariant after initialized)
  * @txn_security_ctx:     require sender's security context
  *                        (invariant after initialized)
  * @async_todo:           list of async work items
@@ -1637,6 +1638,52 @@ static struct binder_ref *binder_get_ref_olocked(struct binder_proc *proc,
 	return NULL;
 }
 
+
+static void dump_ref_desc_tree(struct binder_ref *new_ref, struct rb_node *n_in)
+{
+	struct binder_proc *proc = new_ref->proc;
+	uint32_t desc = new_ref->data.desc;
+	struct rb_node *n, *p;
+	struct binder_ref *ref;
+	int i = 0;
+
+	pr_info("BUG.%d:%d: dump of refs_by_desc rb tree, new desc=%u, n%sNULL\n",
+			proc->pid, current->pid, desc, n_in ? "!=" : "==");
+	if (n_in) {
+		ref = rb_entry(n_in, struct binder_ref, rb_node_desc);
+		pr_info("ref containing n: id %d desc %u n %d s %d w %d\n",
+			ref->data.debug_id, ref->data.desc,
+			ref->node->debug_id,
+			ref->data.strong, ref->data.weak);
+	}
+
+	for (n = rb_first(&proc->refs_by_desc); n != NULL; n = rb_next(n)) {
+		struct binder_ref *left=NULL, *right=NULL, *parent=NULL;
+
+		ref = rb_entry(n, struct binder_ref, rb_node_desc);
+		if (n->rb_left)
+			left = rb_entry(n->rb_left, struct binder_ref,
+					rb_node_desc);
+		if (n->rb_right)
+			right = rb_entry(n->rb_right, struct binder_ref,
+					 rb_node_desc);
+		p = rb_parent(n);
+		if (p)
+			parent = rb_entry(p, struct binder_ref, rb_node_desc);
+
+		pr_info("%d: id %d desc %u%s%s%s n %d s %d w %d l %d r %d p %d\n",
+			i++, ref->data.debug_id, ref->data.desc,
+			(n == proc->refs_by_desc.rb_node) ? " (ROOT)" : "",
+			(ref->data.desc == desc) ? " (MATCH)" : "",
+			(n_in == n) ? " (BREAK)" : "",
+			ref->node->debug_id,
+			ref->data.strong, ref->data.weak,
+			left ? left->data.debug_id : -1,
+			right ? right->data.debug_id : -1,
+			parent ? parent->data.debug_id : -1);
+	}
+}
+
 /**
  * binder_get_ref_for_node_olocked() - get the ref associated with given node
  * @proc:	binder_proc that owns the ref
@@ -1704,8 +1751,10 @@ static struct binder_ref *binder_get_ref_for_node_olocked(
 			p = &(*p)->rb_left;
 		else if (new_ref->data.desc > ref->data.desc)
 			p = &(*p)->rb_right;
-		else
+		else {
+			dump_ref_desc_tree(new_ref, n);
 			BUG();
+		}
 	}
 	rb_link_node(&new_ref->rb_node_desc, parent, p);
 	rb_insert_color(&new_ref->rb_node_desc, &proc->refs_by_desc);
@@ -3165,7 +3214,7 @@ static void binder_transaction(struct binder_proc *proc,
 				    ALIGN(secctx_sz, sizeof(u64));
 		char *kptr = t->buffer->data + buf_offset;
 
-		t->security_ctx = (uintptr_t)kptr +
+		t->security_ctx = (binder_uintptr_t)kptr +
 		    binder_alloc_get_user_buffer_offset(&target_proc->alloc);
 		memcpy(kptr, secctx, secctx_sz);
 		security_release_secctx(secctx, secctx_sz);
@@ -3208,7 +3257,7 @@ static void binder_transaction(struct binder_proc *proc,
 	if (!IS_ALIGNED(extra_buffers_size, sizeof(u64))) {
 		binder_user_error("%d:%d got transaction with unaligned buffers size, %llu\n",
 				  proc->pid, thread->pid,
-				  (u64)extra_buffers_size);
+				  extra_buffers_size);
 		return_error = BR_FAILED_REPLY;
 		return_error_param = -EINVAL;
 		return_error_line = __LINE__;
@@ -4328,9 +4377,9 @@ retry:
 					ALIGN(t->buffer->data_size,
 					    sizeof(void *));
 
-		tr.secctx = t->security_ctx;
 		if (t->security_ctx) {
 			cmd = BR_TRANSACTION_SEC_CTX;
+			tr.secctx = t->security_ctx;
 			trsize = sizeof(tr);
 		}
 		if (put_user(cmd, (uint32_t __user *)ptr)) {
@@ -4360,7 +4409,7 @@ retry:
 			     "%d:%d %s %d %d:%d, cmd %d size %zd-%zd ptr %016llx-%016llx\n",
 			     proc->pid, thread->pid,
 			     (cmd == BR_TRANSACTION) ? "BR_TRANSACTION" :
-				(cmd == BR_TRANSACTION_SEC_CTX) ?
+			         (cmd == BR_TRANSACTION_SEC_CTX) ?
 				     "BR_TRANSACTION_SEC_CTX" : "BR_REPLY",
 			     t->debug_id, t_from ? t_from->proc->pid : 0,
 			     t_from ? t_from->pid : 0, cmd,
@@ -4898,6 +4947,7 @@ static long binder_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			ret = -EINVAL;
 			goto err;
 		}
+
 		if (put_user(BINDER_CURRENT_PROTOCOL_VERSION,
 			     &ver->protocol_version)) {
 			ret = -EINVAL;
