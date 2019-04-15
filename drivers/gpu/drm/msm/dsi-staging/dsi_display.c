@@ -143,6 +143,17 @@ static int dsi_display_debugfs_init(struct dsi_display *display)
 		goto error_remove_dir;
 	}
 
+	if (display->panel->host_config.force_hs_clk_lane) {
+		pr_debug("no dsi clock gating for continuous clock mode\n");
+		return 0;
+	}
+
+	mctrl = &display->ctrl[display->clk_master_idx];
+	if (!mctrl) {
+		pr_err("Invalid controller\n");
+		return -EINVAL;
+	}
+
 	display->root = dir;
 	return rc;
 error_remove_dir:
