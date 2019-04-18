@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  compile:
+    docker:
+      - image: circleci/buildpack-deps:bionic
+    steps:
+      - run: sudo apt install -qq bc libstdc++6
+      - checkout
+      - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/circle-asus-eas
+      - run: chmod +x circle-asus-eas
+      - run: bash circle-asus-eas
+workflows:
+  version: 2
+  cooking:
+    jobs:
+      - compile
