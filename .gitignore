@@ -116,3 +116,6 @@ all.config
 
 # Huaqin, stop being retard by doing all kernel stuffs on Windows
 !.gitattributes
+
+# Don't track Out dir
+out/*
