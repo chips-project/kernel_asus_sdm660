@@ -7286,6 +7286,7 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
 	unsigned int old_userobj;
 	unsigned long flags;
 	int cnt = 0, cpu;
+	const unsigned int offset = offsetof(struct trace_iterator, seq);
 
 	/* Only allow one dump user at a time. */
 	if (atomic_inc_return(&dump_running) != 1) {
@@ -7353,7 +7354,11 @@ void ftrace_dump(enum ftrace_dump_mode oops_dump_mode)
 
 		cnt++;
 
-		trace_iterator_reset(&iter);
+		/* reset all but tr, trace, and overruns */
+		memset(offset+(void *)&iter, 0, sizeof(iter) - offset);
+		iter.iter_flags |= TRACE_FILE_LAT_FMT;
+		iter.pos = -1;
+
 		if (trace_find_next_entry_inc(&iter) != NULL) {
 			int ret;
 
