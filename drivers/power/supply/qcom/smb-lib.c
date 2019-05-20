@@ -3458,6 +3458,7 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1500MA	0x3C
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA	0x50
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA	0x52
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA	0x72
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA	0x78
 
 enum JEITA_state {
@@ -3715,16 +3716,16 @@ void jeita_rule(void)
 	case JEITA_STATE_LESS_THAN_0:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_850MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
 		break;
 	case JEITA_STATE_RANGE_0_to_100:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 
 		/* reg=1070 */
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
 
 		/* reg=1061 */
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1400MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
 
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -3736,10 +3737,10 @@ void jeita_rule(void)
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 
 		/* reg=1070 */
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
 
 		/* reg=1061 */
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
 
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -3749,13 +3750,13 @@ void jeita_rule(void)
 		break;
 	case JEITA_STATE_RANGE_500_to_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
 		break;
 	case JEITA_STATE_LARGER_THAN_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1475MA;
+		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
 		break;
 	}
 
@@ -3855,7 +3856,7 @@ void asus_chg_flow_work(struct work_struct *work)
 			pr_err("%s: Couldn't read fast_CURRENT_LIMIT_CFG_REG\n",
 				__func__);
 
-		set_icl = ICL_500mA;
+		set_icl = ICL_2850mA;
 
 		rc = smblib_masked_write(smbchg_dev,
 						USBIN_CURRENT_LIMIT_CFG_REG,
@@ -3872,7 +3873,7 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	case CDP_CHARGER_BIT:
-		set_icl = ICL_1500mA;
+		set_icl = ICL_2850mA;
 
 		/* reg=1370, bit7-bit0=USBIN_CURRENT_LIMIT */
 		rc = smblib_masked_write(smbchg_dev,
@@ -3898,7 +3899,7 @@ void asus_chg_flow_work(struct work_struct *work)
 
 	case OCP_CHARGER_BIT:
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_1000mA;
+		set_icl = ICL_2850mA;
 
 		rc = smblib_masked_write(smbchg_dev,
 						USBIN_CURRENT_LIMIT_CFG_REG,
@@ -3925,7 +3926,7 @@ void asus_chg_flow_work(struct work_struct *work)
 				__func__);
 
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_1000mA;
+		set_icl = ICL_2850mA;
 
 		rc = smblib_masked_write(smbchg_dev,
 						USBIN_CURRENT_LIMIT_CFG_REG,
@@ -4047,7 +4048,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 		break;
 
 	case ADC_NOT_READY:
-		usb_max_current = ICL_1000mA;
+		usb_max_current = ICL_2000mA;
 		break;
 	}
 
@@ -4407,7 +4408,7 @@ void smblib_usb_plugin_hard_reset_locked(struct smb_charger *chg)
 					vbus_rising ? "attached" : "detached");
 }
 
-#define PL_DELAY_MS			30000
+#define PL_DELAY_MS			15000
 void smblib_usb_plugin_locked(struct smb_charger *chg)
 {
 	int rc;
@@ -5148,7 +5149,7 @@ static void smblib_handle_typec_removal(struct smb_charger *chg)
 	chg->pulse_cnt = 0;
 	chg->usb_icl_delta_ua = 0;
 	chg->voltage_min_uv = MICRO_5V;
-	chg->voltage_max_uv = MICRO_5V;
+	chg->voltage_max_uv = MICRO_9V;
 	chg->pd_active = 0;
 	chg->pd_hard_reset = 0;
 	chg->typec_legacy_valid = false;
