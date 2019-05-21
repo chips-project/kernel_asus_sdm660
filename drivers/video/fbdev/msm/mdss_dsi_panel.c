@@ -970,6 +970,15 @@ static int mdss_dsi_panel_on(struct mdss_panel_data *pdata)
 	if (on_cmds->cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, on_cmds, CMD_REQ_COMMIT);
 
+	if (ctrl->ce_on_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->ce_on_cmds, CMD_REQ_COMMIT);
+
+	if (ctrl->srgb_on_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->srgb_on_cmds, CMD_REQ_COMMIT);
+
+	if (ctrl->cabc_on_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_on_cmds, CMD_REQ_COMMIT);
+
 	if (pinfo->compression_mode == COMPRESSION_DSC)
 		mdss_dsi_panel_dsc_pps_send(ctrl, pinfo);
 
@@ -1050,6 +1059,15 @@ static int mdss_dsi_panel_off(struct mdss_panel_data *pdata)
 
 	if (ctrl->off_cmds.cmd_cnt)
 		mdss_dsi_panel_cmds_send(ctrl, &ctrl->off_cmds, CMD_REQ_COMMIT);
+
+	if (ctrl->ce_off_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->ce_off_cmds, CMD_REQ_COMMIT);
+
+	if (ctrl->srgb_off_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->srgb_off_cmds, CMD_REQ_COMMIT);
+
+	if (ctrl->cabc_off_cmds.cmd_cnt)
+		mdss_dsi_panel_cmds_send(ctrl, &ctrl->cabc_off_cmds, CMD_REQ_COMMIT);
 
 	if (ctrl->ds_registered && pinfo->is_pluggable) {
 		mdss_dba_utils_video_off(pinfo->dba_data);
@@ -2946,6 +2964,24 @@ static int mdss_panel_parse_dt(struct device_node *np,
 					"qcom,mdss-dsi-lp11-init");
 	rc = of_property_read_u32(np, "qcom,mdss-dsi-init-delay-us", &tmp);
 	pinfo->mipi.init_delay = (!rc ? tmp : 0);
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->ce_on_cmds,
+			"qcom,mdss-dsi-ce-on-command", "qcom,mdss-dsi-ce-on-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->ce_off_cmds,
+			"qcom,mdss-dsi-ce-off-command", "qcom,mdss-dsi-ce-off-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->srgb_on_cmds,
+			"qcom,mdss-dsi-srgb-on-command", "qcom,mdss-dsi-srgb-on-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->srgb_off_cmds,
+			"qcom,mdss-dsi-srgb-off-command", "qcom,mdss-dsi-srgb-off-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->cabc_on_cmds,
+			"qcom,mdss-dsi-cabc-on-command", "qcom,mdss-dsi-cabc-on-command-state");
+
+	mdss_dsi_parse_dcs_cmds(np, &ctrl_pdata->cabc_off_cmds,
+			"qcom,mdss-dsi-cabc-off-command", "qcom,mdss-dsi-cabc-off-command-state");
 
 	rc = of_property_read_u32(np, "qcom,mdss-dsi-post-init-delay", &tmp);
 	pinfo->mipi.post_init_delay = (!rc ? tmp : 0);
