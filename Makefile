@@ -652,6 +652,7 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, address-of-packed-member)
 KBUILD_CFLAGS   += $(call cc-disable-warning, stringop-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, fortify-source)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, unsequenced)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, incompatible-pointer-types)
 
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
