@@ -654,6 +654,9 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, fortify-source)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, unsequenced)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, incompatible-pointer-types)
 
+# REVERTME
+KBUILD_CFLAGS	+= $(call cc-disable-warning, unused-function)
+
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
