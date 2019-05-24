@@ -6,7 +6,7 @@ jobs:
     steps:
       - run: sudo apt install -qq bc libstdc++6
       - checkout
-      - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/circle-asus-eas
+      - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/circle-asus-eas
       - run: chmod +x circle-asus-eas
       - run: bash circle-asus-eas
 workflows:

@@ -14,5 +14,5 @@ blocks:
         commands:
           - checkout
           - install-package bc build-essential zip curl libstdc++6
-          - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/semaphore-asus-hmp
-          - bash semaphore-asus-hmp
+          - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/semaphore/semaphore-asus-eas
+          - bash semaphore-asus-eas
