@@ -31,3 +31,5 @@ obj-$(CONFIG_CPU_FREQ_GOV_SCHEDUTIL) += cpufreq_schedutil.o
 obj-$(CONFIG_CPU_FREQ_GOV_SCHEDALUCARD) += cpufreq_schedalucard.o
 obj-$(CONFIG_CPU_FREQ_GOV_PWRUTILX) += cpufreq_pwrutilx.o
 obj-$(CONFIG_CPU_FREQ_GOV_HELIX) += cpufreq_helix_schedutil.o
+obj-$(CONFIG_CPU_FREQ_GOV_DARKUTIL) += cpufreq_darkutil.o
+obj-$(CONFIG_CPU_FREQ_GOV_ELECTROUTIL) += cpufreq_electroutil.o
