@@ -10,7 +10,7 @@ blocks:
       secrets:
       - name: moaikernal
       jobs:
-      - name: X00T/HMP
+      - name: X00T/EAS
         commands:
           - checkout
           - install-package bc build-essential zip curl libstdc++6
