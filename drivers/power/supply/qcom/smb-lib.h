@@ -374,9 +374,6 @@ struct smb_charger {
 	/* qnovo */
 	int			usb_icl_delta_ua;
 	int			pulse_cnt;
-
-	/* hvdcp 5v */
-	bool			hvdcp_force_5v;
 };
 
 #ifdef CONFIG_MACH_ASUS_X00T

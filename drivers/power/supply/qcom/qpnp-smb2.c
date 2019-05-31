@@ -30,7 +30,6 @@
 #include <linux/pmic-voter.h>
 #ifdef CONFIG_MACH_ASUS_X00T
 #include <linux/of_gpio.h>
-#include <linux/wakelock.h>
 #include <linux/uaccess.h>
 #include <linux/proc_fs.h>
 #include <asm-generic/errno-base.h>
@@ -190,7 +189,7 @@ struct smb2 {
 #ifdef CONFIG_MACH_ASUS_X00T
 struct smb_charger *smbchg_dev;
 struct timespec last_jeita_time;
-struct wake_lock asus_chg_lock;
+struct wakeup_source asus_chg_lock;
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
 extern void asus_smblib_stay_awake(struct smb_charger *chg);
@@ -344,8 +343,6 @@ static int smb2_parse_dt(struct smb2 *chip)
 
 	chg->suspend_input_on_debug_batt = of_property_read_bool(node,
 					"qcom,suspend-input-on-debug-batt");
-	chg->hvdcp_force_5v = of_property_read_bool(node,
-						"qcom,hvdcp-force-5v");
 
 	rc = of_property_read_u32(node, "qcom,otg-deglitch-time-ms",
 					&chg->otg_delay_ms);
@@ -1056,7 +1053,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 					      BATT_PROFILE_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = POWER_SUPPLY_TECHNOLOGY_LIPO;
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_DONE:
 		rc = smblib_get_prop_batt_charge_done(chg, val);
@@ -1820,27 +1817,6 @@ static int smb2_init_hw(struct smb2 *chip)
 		}
 	}
 
-	if (chg->hvdcp_force_5v) {
-		pr_info("hw init hvdcp force to 5v\n");
-		rc = smblib_write(chg, HVDCP_PLUSE_COUNT_MAX,
-				HVDCP_FORCE_5V);
-		if (rc < 0) {
-			dev_err(chg->dev,
-				"Couldn't configure hvdcp force 5v, rc=%d\n",
-				rc);
-			return rc;
-		}
-
-		rc = smblib_masked_write(chg, ENG_BUCKBOOST_CfG9,
-				ENG_BUCKBOOST_IPEAK_USB_SELECT,
-				0x5);
-		if (rc < 0) {
-			dev_err(chg->dev,
-				"Couldn't configure ENG_BUCKBOOST_CFG9, rc=%d\n",
-				rc);
-			return rc;
-		}
-	}
 	return rc;
 }
 
@@ -2576,7 +2552,7 @@ static int smb2_probe(struct platform_device *pdev)
 	chg->irq_info = smb2_irqs;
 	chg->name = "PMI";
 #ifdef CONFIG_MACH_ASUS_X00T
-	wake_lock_init(&asus_chg_lock, WAKE_LOCK_SUSPEND, "asus_chg_lock");
+	wakeup_source_init(&asus_chg_lock, "asus_chg_lock");
 
 	/* ASUS BSP: add globe device struct */
 	smbchg_dev = chg;
