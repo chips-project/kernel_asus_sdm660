@@ -7,7 +7,7 @@
 };
 
 &pm660_fg {
-	qcom,fg-jeita-thresholds = <0 1 59 60>;
+	qcom,fg-jeita-thresholds = <0 5 80 90>;
 };
 
 &sdhc_1 {
