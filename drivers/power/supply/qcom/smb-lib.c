@@ -2674,12 +2674,12 @@ int smblib_get_prop_die_health(struct smb_charger *chg,
 	return 0;
 }
 
-#define SDP_CURRENT_UA			500000
-#define CDP_CURRENT_UA			1500000
+#define SDP_CURRENT_UA			2500000
+#define CDP_CURRENT_UA			2500000
 #ifdef CONFIG_MACH_ASUS_X00T
-#define DCP_CURRENT_UA			1500000
+#define DCP_CURRENT_UA			2500000
 #else
-#define DCP_CURRENT_UA			500000
+#define DCP_CURRENT_UA			3500000
 #endif
 #define HVDCP_CURRENT_UA		3000000
 #define TYPEC_DEFAULT_CURRENT_UA	900000
@@ -3210,11 +3210,6 @@ int smblib_get_prop_fcc_delta(struct smb_charger *chg,
 				union power_supply_propval *val)
 {
 	int rc, jeita_cc_delta_ua = 0;
-
-	if (chg->sw_jeita_enabled) {
-		val->intval = 0;
-		return 0;
-	}
 
 	rc = smblib_get_jeita_cc_delta(chg, &jeita_cc_delta_ua);
 	if (rc < 0) {
