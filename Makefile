@@ -661,6 +661,10 @@ KBUILD_CFLAGS	+= $(call cc-disable-warning, unused-function)
 KBUILD_CFLAGS   += $(call cc-disable-warning, missing-attributes)
 KBUILD_CFLAGS	+= $(call cc-disable-warning,maybe-uninitialized,)
 
+ifeq ($(cc-name),gcc)
+KBUILD_CFLAGS	+= -Wno-psabi
+endif
+
 ifdef CONFIG_CC_OPTIMIZE_FOR_SIZE
 KBUILD_CFLAGS	+= -Os
 else
