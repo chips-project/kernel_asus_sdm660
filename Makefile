@@ -653,6 +653,7 @@ KBUILD_CFLAGS   += $(call cc-disable-warning, stringop-overflow)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, fortify-source)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, unsequenced)
 KBUILD_CFLAGS	+= $(call cc-disable-warning, incompatible-pointer-types)
+KBUILD_CFLAGS	+= $(call cc-disable-warning, psabi)
 
 # REVERTME
 KBUILD_CFLAGS	+= $(call cc-disable-warning, unused-function)
