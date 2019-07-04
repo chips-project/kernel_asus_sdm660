@@ -1071,36 +1071,6 @@ static void ion_sg_free_table(struct sg_table *table)
 	__sg_free_table(table, SG_MAX_SINGLE_ALLOC, false, ion_sg_free);
 }
 
-struct sg_table *ion_create_chunked_sg_table(phys_addr_t buffer_base,
-					size_t chunk_size, size_t total_size)
-{
-	struct sg_table *table;
-	int i, n_chunks, ret;
-	struct scatterlist *sg;
-
-	table = kmem_cache_alloc(ion_sg_table_pool, GFP_KERNEL);
-	if (!table)
-		return ERR_PTR(-ENOMEM);
-
-	n_chunks = DIV_ROUND_UP(total_size, chunk_size);
-	pr_debug("creating sg_table with %d chunks\n", n_chunks);
-
-	ret = ion_sg_alloc_table(table, n_chunks, GFP_KERNEL);
-	if (ret)
-		goto err0;
-
-	for_each_sg(table->sgl, sg, table->nents, i) {
-		dma_addr_t addr = buffer_base + i * chunk_size;
-		sg_dma_address(sg) = addr;
-		sg->length = chunk_size;
-	}
-
-	return table;
-err0:
-	kmem_cache_free(ion_sg_table_pool, table);
-	return ERR_PTR(ret);
-}
-
 static struct sg_table *ion_dupe_sg_table(struct sg_table *orig_table)
 {
 	int ret, i;
