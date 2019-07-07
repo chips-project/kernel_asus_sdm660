@@ -1,0 +1,27 @@
+kind: pipeline
+name: kernel_asus_sdm660
+
+platform:
+  os: linux
+  arch: amd64
+
+clone:
+  depth: 1
+
+steps:
+  - name: Compile
+    image: ubuntu:latest
+    environment:
+      token:
+        from_secret: tg_token
+      chat_id:
+        from_secret: priv_channel
+      priv_id:
+        from_secret: priv_info
+    commands:
+      - apt-get update && apt-get install -y bison build-essential bc bison curl libssl-dev git zip wget
+      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel && chmod +x chipskernel
+      - bash chipskernel
+    when:
+      branch:
+        - lineage-16.0
