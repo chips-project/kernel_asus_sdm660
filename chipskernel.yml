@@ -15,7 +15,7 @@ steps:
       token:
         from_secret: tg_token
       chat_id:
-        from_secret: priv_channel
+        from_secret: rel_channel
       priv_id:
         from_secret: priv_info
     commands:
