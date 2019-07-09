@@ -447,8 +447,8 @@ static int dvb_dmxdev_update_events(struct dmxdev_events_queue *events,
 			} else {
 				bytes_read = 0;
 			}
-		} else {
-			if (bytes_read)
+			} else {
+				if (bytes_read)
 				/*
 				 * data was read beyond the non-data event,
 				 * making it not relevant anymore
