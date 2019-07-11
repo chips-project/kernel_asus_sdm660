@@ -1383,17 +1383,21 @@ static inline void trace_event_enum_update(struct trace_enum_map **map, int len)
 
 extern struct trace_iterator *tracepoint_print_iter;
 
-/* reset all but tr, trace, and overruns */
-static __always_inline void trace_iterator_reset(struct trace_iterator * iter)
+/*
+ * Reset the state of the trace_iterator so that it can read consumed data.
+ * Normally, the trace_iterator is used for reading the data when it is not
+ * consumed, and must retain state.
+ */
+static __always_inline void trace_iterator_reset(struct trace_iterator *iter)
 {
+	const size_t offset = offsetof(struct trace_iterator, seq);
+
 	/*
-	 * Equivalent to &iter->seq, but avoids GCC 9 complaining about
-	 * overwriting more members than just iter->seq (-Warray-bounds)
+	 * Keep gcc from complaining about overwriting more than just one
+	 * member in the structure.
 	 */
-	memset((char *)(iter) + offsetof(struct trace_iterator, seq), 0,
-		sizeof(struct trace_iterator) -
-		offsetof(struct trace_iterator, seq));
-	iter->iter_flags |= TRACE_FILE_LAT_FMT;
+	memset((char *)iter + offset, 0, sizeof(struct trace_iterator) - offset);
+
 	iter->pos = -1;
 }
 

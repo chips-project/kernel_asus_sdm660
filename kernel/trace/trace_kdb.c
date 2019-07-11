@@ -41,6 +41,8 @@ static void ftrace_dump_buf(int skip_lines, long cpu_file)
 	kdb_printf("Dumping ftrace buffer:\n");
 
 	trace_iterator_reset(&iter);
+	iter.iter_flags |= TRACE_FILE_LAT_FMT;
+
 	if (cpu_file == RING_BUFFER_ALL_CPUS) {
 		for_each_tracing_cpu(cpu) {
 			iter.buffer_iter[cpu] =
