@@ -21,6 +21,11 @@ ifdef CONFIG_TRACING_BRANCHES
 KBUILD_CFLAGS += -DDISABLE_BRANCH_PROFILING
 endif
 
+# Temporary fix unused vars for suppress higher toolchains
+ifdef CONFIG_TRACING
+subdir-ccflags-y += -Wno-unused-variable
+endif
+
 CFLAGS_trace_benchmark.o := -I$(src)
 CFLAGS_trace_events_filter.o := -I$(src)
 
