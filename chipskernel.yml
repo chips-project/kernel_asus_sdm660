@@ -14,6 +14,10 @@ steps:
         from_secret: rel_channel
       priv_id:
         from_secret: priv_info
+      nToken:
+        from_secret: nToken
+      my_id:
+        from_secret: my_id
       is_test: false
     commands:
       - apt-get update
