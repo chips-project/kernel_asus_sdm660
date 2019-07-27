@@ -30,6 +30,7 @@
 #include <linux/gpio.h>
 #include <linux/fs.h>
 #include <linux/alarmtimer.h>
+#include <linux/wakelock.h>
 #include <linux/unistd.h>
 #include <linux/fcntl.h>
 #include <linux/slab.h>
@@ -64,7 +65,7 @@ charge_mode	:	SMBCHG_FAST_CHG_CURRENT_VALUE
 4			:	3000MA
 other		:	2000MA
 */
-static unsigned int charge_mode = 4;
+static unsigned int charge_mode = 2;
 module_param(charge_mode, uint, S_IWUSR | S_IRUGO);
 
 /*
@@ -122,15 +123,15 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 				USBIN_AICL_EN_BIT, USBIN_AICL_EN_BIT);
 }
 
-extern struct wakeup_source asus_chg_lock;
+extern struct wake_lock asus_chg_lock;
 void asus_smblib_stay_awake(struct smb_charger *chg)
 {
-	__pm_stay_awake(&asus_chg_lock);
+	wake_lock(&asus_chg_lock);
 }
 
 void asus_smblib_relax(struct smb_charger *chg)
 {
-	__pm_relax(&asus_chg_lock);
+	wake_unlock(&asus_chg_lock);
 }
 #endif /* CONFIG_MACH_ASUS_X00T */
 
@@ -2674,12 +2675,12 @@ int smblib_get_prop_die_health(struct smb_charger *chg,
 	return 0;
 }
 
-#define SDP_CURRENT_UA			2500000
-#define CDP_CURRENT_UA			2500000
+#define SDP_CURRENT_UA			500000
+#define CDP_CURRENT_UA			1500000
 #ifdef CONFIG_MACH_ASUS_X00T
-#define DCP_CURRENT_UA			2500000
+#define DCP_CURRENT_UA			500000
 #else
-#define DCP_CURRENT_UA			3500000
+#define DCP_CURRENT_UA			1500000
 #endif
 #define HVDCP_CURRENT_UA		3000000
 #define TYPEC_DEFAULT_CURRENT_UA	900000
@@ -3718,9 +3719,9 @@ void jeita_rule(void)
 	charging_current = asus_get_prop_charging_current(smbchg_dev);
 	bat_capacity = asus_get_prop_batt_capacity(smbchg_dev);
 	state = smbchg_jeita_judge_state(state, bat_temp);
-	printk("%s: state=%d, batt_health = %s, bat_temp = %d, bat_volt = %d,charg_curent = %d, bat_capacity=%d, ICL = 0x%x, FV_reg=0x%x\n",
+	printk("%s: state=%d, batt_health = %s, bat_temp = %d, bat_volt = %d, charg_current = %d, bat_capacity=%d, ICL = 0x%x, FV_reg=0x%x\n",
 			__func__, state, health_type[bat_health], bat_temp,
-			bat_volt,charging_current, bat_capacity, ICL_reg, FV_reg);
+			bat_volt, charging_current, bat_capacity, ICL_reg, FV_reg);
 
 	switch (state) {
 	case JEITA_STATE_LESS_THAN_0:
@@ -3902,7 +3903,7 @@ void asus_chg_flow_work(struct work_struct *work)
 		break;
 
 	case CDP_CHARGER_BIT:
-		set_icl = ICL_500mA;
+		set_icl = ICL_1500mA;
 
 		/* reg=1370, bit7-bit0=USBIN_CURRENT_LIMIT */
 		rc = smblib_masked_write(smbchg_dev,
@@ -3928,7 +3929,7 @@ void asus_chg_flow_work(struct work_struct *work)
 
 	case OCP_CHARGER_BIT:
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_500mA;
+		set_icl = ICL_1000mA;
 
 		rc = smblib_masked_write(smbchg_dev,
 						USBIN_CURRENT_LIMIT_CFG_REG,
@@ -3955,7 +3956,7 @@ void asus_chg_flow_work(struct work_struct *work)
 				__func__);
 
 		/* reg=1370 bit7-bit0 */
-		set_icl = ICL_500mA;
+		set_icl = ICL_1500mA;
 
 		rc = smblib_masked_write(smbchg_dev,
 						USBIN_CURRENT_LIMIT_CFG_REG,
@@ -4059,7 +4060,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 	else
 		pr_debug("%s: Pull low USBSW_S\n", __func__);
 
-	pr_debug("%s: setting mA = 0x%x\n", __func__,
+	pr_err("%s: setting mA = 0x%x\n", __func__,
 			usb_max_current);
 
 	/* Set current:
