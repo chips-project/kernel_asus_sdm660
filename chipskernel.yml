@@ -1,12 +1,16 @@
 kind: pipeline
 name: kernel_asus_sdm660
 
+platform:
+  os: linux
+  arch: amd64
+
 clone:
   depth: 1
 
 steps:
   - name: Compile
-    image: debian:latest
+    image: kdrag0n/fedora-kbuild:gcc-9.1.1
     environment:
       token:
         from_secret: tg_token
@@ -20,10 +24,7 @@ steps:
         from_secret: my_id
       is_test: false
     commands:
-      - apt-get update
-      - apt-get install -y ccache bc bash git-core gnupg build-essential zip curl make automake autogen autoconf autotools-dev libtool shtool python m4 gcc libtool zlib1g-dev dash pigz wget
-      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel && chmod +x chipskernel
-      - bash chipskernel
+      - sh -c "$(curl -fsSL https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel)"
     when:
       branch:
         - lineage-16.0
