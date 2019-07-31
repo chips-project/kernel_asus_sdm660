@@ -179,44 +179,10 @@ static void sugov_update_commit(struct sugov_policy *sg_policy, u64 time,
 
 		policy->cur = next_freq;
 		trace_cpu_frequency(next_freq, smp_processor_id());
-	} else {
+	} else if (!sg_policy->work_in_progress) {
 		sg_policy->work_in_progress = true;
 		irq_work_queue(&sg_policy->irq_work);
 	}
-}
-
-#ifdef CONFIG_NO_HZ_COMMON
-static bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu)
-{
-	unsigned long idle_calls = tick_nohz_get_idle_calls();
-	bool ret = idle_calls == sg_cpu->saved_idle_calls;
-
-	sg_cpu->saved_idle_calls = idle_calls;
-	return ret;
-}
-static void sugov_cpu_is_busy_update(struct sugov_cpu *sg_cpu,
-				     unsigned long util)
-{
-	unsigned long idle_calls = tick_nohz_get_idle_calls_cpu(sg_cpu->cpu);
- 	sg_cpu->saved_idle_calls = idle_calls;
-
-	/*
-	 * Make sure that this CPU will not be immediately considered as busy in
-	 * cases where the CPU has already entered an idle state. In that case,
-	 * the number of idle_calls will not vary anymore until it exits idle,
-	 * which would lead sugov_cpu_is_busy() to say that this CPU is busy,
-	 * because it has not (re)entered idle since the last time we looked at
-	 * it.
-	 * Assuming cpu0 and cpu1 are in the same policy, that will make sure
-	 * this sequence of events leads to right cpu1 business status from
-	 * get_next_freq(cpu=1)
-	 * cpu0: [enter idle] -> [get_next_freq] -> [doing nothing] -> [wakeup]
-	 * cpu1:                ...              -> [get_next_freq] ->   ...
-	 */
-	if (util <= sg_cpu->previous_util)
-		sg_cpu->saved_idle_calls--;
-
-	sg_cpu->previous_util = util;
 }
 #else
 static inline bool sugov_cpu_is_busy(struct sugov_cpu *sg_cpu) { return false; }
