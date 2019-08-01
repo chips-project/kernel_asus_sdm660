@@ -3770,7 +3770,7 @@ void jeita_rule(void)
 	charging_current = asus_get_prop_charging_current(smbchg_dev);
 	bat_capacity = asus_get_prop_batt_capacity(smbchg_dev);
 	state = smbchg_jeita_judge_state(state, bat_temp);
-	printk("%s: state=%d, batt_health = %s, bat_temp = %d, bat_volt = %d, charg_current = %d, bat_capacity=%d, ICL = 0x%x, FV_reg=0x%x\n",
+	pr_err("%s: state=%d, batt_health = %s, bat_temp = %d, bat_volt = %d, charg_current = %d, bat_capacity=%d, ICL = 0x%x, FV_reg=0x%x\n",
 			__func__, state, health_type[bat_health], bat_temp,
 			bat_volt, charging_current, bat_capacity, ICL_reg, FV_reg);
 
@@ -3787,7 +3787,26 @@ void jeita_rule(void)
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
 
 		/* reg=1061 */
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1400MA;
+		switch (charge_mode) {
+				case 0:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+					break;
+				case 1:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA;
+					break;
+				case 2:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2500MA;
+					break;
+				case 3:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2850MA;
+					break;
+				case 4:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA;
+					break;
+				default:
+					FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+					break;
+			}
 
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -4064,7 +4083,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 		pr_err("%s: Failed to set USBIN_OPTIONS_1_CFG_REG\n",
 			__func__);
 
-	msleep(5);
+	msleep(1);
 
 	//setting max allowed current from adapter
 	switch (adapter_ceeling_current) {
