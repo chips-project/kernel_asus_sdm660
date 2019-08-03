@@ -3760,12 +3760,10 @@ void jeita_rule(void)
 
 	switch (state) {
 	case JEITA_STATE_LESS_THAN_0:
-		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P357;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_850MA;
-		break;
 	case JEITA_STATE_RANGE_0_to_100:
 	case JEITA_STATE_RANGE_100_to_500:
+	case JEITA_STATE_RANGE_500_to_600:
+	case JEITA_STATE_LARGER_THAN_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
 		switch (charge_mode) {
@@ -3794,16 +3792,6 @@ void jeita_rule(void)
 			pr_err("%s: SW_recharge failed rc = %d\n", __func__,
 				rc);
 
-		break;
-	case JEITA_STATE_RANGE_500_to_600:
-		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
-		break;
-	case JEITA_STATE_LARGER_THAN_600:
-		charging_enable = EN_BAT_CHG_EN_COMMAND_FALSE;
-		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_1475MA;
 		break;
 	}
 
