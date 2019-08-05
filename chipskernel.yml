@@ -1,5 +1,5 @@
 kind: pipeline
-name: kernel_asus_sdm660
+name: Hot Oven
 
 platform:
   os: linux
@@ -9,8 +9,8 @@ clone:
   depth: 1
 
 steps:
-  - name: Compile
-    image: kdrag0n/fedora-kbuild:gcc-9.1.1
+  - name: CLANG-10
+    image: najahi/oven:latest
     environment:
       token:
         from_secret: tg_token
@@ -24,7 +24,31 @@ steps:
         from_secret: my_id
       is_test: false
     commands:
-      - sh -c "$(curl -fsSL https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel)"
+      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel
+      - chmod +x chipskernel
+      - bash chipskernel
+    when:
+      branch:
+        - lineage-16.0
+
+  - name: GCC-10
+    image: najahi/oven:latest
+    environment:
+      token:
+        from_secret: tg_token
+      chat_id:
+        from_secret: rel_channel
+      priv_id:
+        from_secret: priv_info
+      nToken:
+        from_secret: nToken
+      my_id:
+        from_secret: my_id
+      is_test: false
+    commands:
+      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel-gcc
+      - chmod +x chipskernel-gcc
+      - bash chipskernel-gcc
     when:
       branch:
         - lineage-16.0
