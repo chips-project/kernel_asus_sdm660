@@ -9,28 +9,6 @@ clone:
   depth: 1
 
 steps:
-  - name: CLANG-10
-    image: najahi/oven:latest
-    environment:
-      token:
-        from_secret: tg_token
-      chat_id:
-        from_secret: rel_channel
-      priv_id:
-        from_secret: priv_info
-      nToken:
-        from_secret: nToken
-      my_id:
-        from_secret: my_id
-      is_test: false
-    commands:
-      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel
-      - chmod +x chipskernel
-      - bash chipskernel
-    when:
-      branch:
-        - lineage-16.0
-
   - name: DRAGONTC-10
     image: najahi/oven:latest
     environment:
@@ -53,7 +31,7 @@ steps:
       branch:
         - lineage-16.0
 
-  - name: GCC-10
+  - name: GCC-9
     image: najahi/oven:latest
     environment:
       token:
@@ -71,6 +49,28 @@ steps:
       - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel-gcc
       - chmod +x chipskernel-gcc
       - bash chipskernel-gcc
+    when:
+      branch:
+        - lineage-16.0
+
+  - name: GCC-10
+    image: najahi/oven:latest
+    environment:
+      token:
+        from_secret: tg_token
+      chat_id:
+        from_secret: rel_channel
+      priv_id:
+        from_secret: priv_info
+      nToken:
+        from_secret: nToken
+      my_id:
+        from_secret: my_id
+      is_test: false
+    commands:
+      - wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/drone/chipskernel-gcc10
+      - chmod +x chipskernel-gcc10
+      - bash chipskernel-gcc10
     when:
       branch:
         - lineage-16.0
