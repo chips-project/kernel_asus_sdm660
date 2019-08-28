@@ -853,9 +853,8 @@ static void tx_wakeup_worker(struct edge_info *einfo)
 			einfo->tx_resume_needed = false;
 			trigger_resume = true;
 		}
-	}
-	if (waitqueue_active(&einfo->tx_blocked_queue)) { /* tx waiting ?*/
-		trigger_wakeup = true;
+		if (waitqueue_active(&einfo->tx_blocked_queue))/* tx waiting ?*/
+			trigger_wakeup = true;
 	}
 	spin_unlock_irqrestore(&einfo->write_lock, flags);
 	if (trigger_wakeup)
@@ -903,8 +902,15 @@ static void __rx_worker(struct edge_info *einfo, bool atomic_ctx)
 		return;
 	}
 
-	if ((atomic_ctx) && ((einfo->tx_resume_needed) ||
-		(waitqueue_active(&einfo->tx_blocked_queue)))) /* tx waiting ?*/
+	if (!einfo->rx_fifo) {
+		if (!get_rx_fifo(einfo))
+			return;
+		einfo->xprt_if.glink_core_if_ptr->link_up(&einfo->xprt_if);
+	}
+
+	if ((atomic_ctx) && ((einfo->tx_resume_needed)
+	    || (einfo->tx_blocked_signal_sent)
+	    || (waitqueue_active(&einfo->tx_blocked_queue)))) /* tx waiting ?*/
 		tx_wakeup_worker(einfo);
 
 	/*
