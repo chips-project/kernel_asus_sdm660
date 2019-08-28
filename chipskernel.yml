@@ -9,7 +9,7 @@ clone:
   depth: 1
 
 steps:
-  - name: NusantaraDevs Clang-10.0.0
+  - name: NusantaraDevs Clang 10.0.0
     image: najahi/oven:latest
     environment:
       token:
@@ -31,7 +31,7 @@ steps:
       branch:
         - lineage-16.0
 
-  - name: GNU GCC 9.2.0 Stable
+  - name: GNU GCC 10.0.0 Stable
     image: najahi/oven:latest
     environment:
       token:
