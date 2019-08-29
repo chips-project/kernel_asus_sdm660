@@ -171,10 +171,10 @@ static inline void init_timer_deferrable_global(void)
 static inline struct tvec_base *get_timer_base(u32 timer_flags)
 {
 	if (!(timer_flags & TIMER_PINNED_ON_CPU) &&
-	    timer_flags & TIMER_DEFERRABLE)
+	    timer_flags & TIMER_DEFERRABLE) {
 		return &tvec_base_deferrable;
-	else
-		return per_cpu_ptr(&tvec_bases, timer_flags & TIMER_CPUMASK);
+	}
+	return per_cpu_ptr(&tvec_bases, timer_flags & TIMER_CPUMASK);
 }
 #else
 static inline struct tvec_base *get_target_base(struct tvec_base *base,
