@@ -416,10 +416,10 @@ int register_cpu(struct cpu *cpu, int num)
 
 struct device *get_cpu_device(unsigned cpu)
 {
-	if (cpu < nr_cpu_ids && cpu_possible(cpu))
+	if (cpu < nr_cpu_ids && cpu_possible(cpu)) {
 		return per_cpu(cpu_sys_devices, cpu);
-	else
-		return NULL;
+	}
+	return NULL;
 }
 EXPORT_SYMBOL_GPL(get_cpu_device);
 
