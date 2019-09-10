@@ -224,10 +224,11 @@ int msm_bcl_disable(void)
 
 int msm_bcl_enable(void)
 {
-/*	int ret = 0, i = 0;
+	int ret = 0, i = 0;
 	struct bcl_param_data *param_data = NULL;
 
-	if (!bcl[i]) {
+	if (!bcl[i] || !bcl[BCL_PARAM_VOLTAGE]->thresh
+		|| !bcl[BCL_PARAM_CURRENT]->thresh) {
 		pr_err("BCL not initialized\n");
 		return -EINVAL;
 	}
@@ -256,8 +257,7 @@ int msm_bcl_enable(void)
 		}
 	}
 
-	return ret; */
-	return 0;
+	return ret;
 }
 
 int msm_bcl_read(enum bcl_param param_type, int *value)

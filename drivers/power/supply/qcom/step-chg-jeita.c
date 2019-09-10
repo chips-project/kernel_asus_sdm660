@@ -74,7 +74,7 @@ struct step_chg_info {
 
 static struct step_chg_info *the_chip;
 
-#define STEP_CHG_HYSTERISIS_DELAY_US		2500000 /* 5 secs */
+#define STEP_CHG_HYSTERISIS_DELAY_US		5000000 /* 5 secs */
 
 /*
  * Step Charging Configuration
@@ -123,7 +123,7 @@ static struct jeita_fcc_cfg jeita_fcc_config = {
 		/* TEMP_LOW	TEMP_HIGH	FCC */
 		{0,		100,		600000},
 		{101,		200,		2000000},
-		{201,		450,		4500000},
+		{201,		450,		3000000},
 		{451,		550,		600000},
 	},
 };
@@ -135,7 +135,7 @@ static struct jeita_fv_cfg jeita_fv_config = {
 	.fv_cfg		= {
 		/* TEMP_LOW	TEMP_HIGH	FCC */
 		{0,		100,		4200000},
-		{101,		450,		4350000},
+		{101,		450,		4400000},
 		{451,		550,		4200000},
 	},
 };
@@ -164,7 +164,6 @@ static int get_val(struct range_data *range, int hysteresis, int current_index,
 			range[i].high_threshold, threshold)) {
 			*new_index = i;
 			*val = range[i].value;
-			break;
 		}
 
 	/* if nothing was found, return -ENODATA */
@@ -337,8 +336,8 @@ static int handle_jeita(struct step_chg_info *chip)
 
 	vote(chip->fv_votable, JEITA_VOTER, true, fv_uv);
 
-	pr_err("%s = %d FCC = %duA FV = %duV\n",
-		jeita_fv_config.prop_name, pval.intval, fcc_ua, fv_uv);
+	pr_debug("%s = %d FCC = %duA FV = %duV\n",
+		step_chg_config.prop_name, pval.intval, fcc_ua, fv_uv);
 
 update_time:
 	chip->jeita_last_update_time = ktime_get();

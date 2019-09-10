@@ -30,6 +30,7 @@
 #include <linux/pmic-voter.h>
 #ifdef CONFIG_MACH_ASUS_X00T
 #include <linux/of_gpio.h>
+#include <linux/wakelock.h>
 #include <linux/uaccess.h>
 #include <linux/proc_fs.h>
 #include <asm-generic/errno-base.h>
@@ -189,8 +190,11 @@ struct smb2 {
 #ifdef CONFIG_MACH_ASUS_X00T
 struct smb_charger *smbchg_dev;
 struct timespec last_jeita_time;
+struct wake_lock asus_chg_lock;
 extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
 extern bool asus_get_prop_usb_present(struct smb_charger *chg);
+extern void asus_smblib_stay_awake(struct smb_charger *chg);
+extern void asus_smblib_relax(struct smb_charger *chg);
 /* global gpio_control */
 struct gpio_control *global_gpio;
 #endif
@@ -1050,7 +1054,7 @@ static int smb2_batt_get_prop(struct power_supply *psy,
 					      BATT_PROFILE_VOTER);
 		break;
 	case POWER_SUPPLY_PROP_TECHNOLOGY:
-		val->intval = POWER_SUPPLY_TECHNOLOGY_LIPO;
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
 		break;
 	case POWER_SUPPLY_PROP_CHARGE_DONE:
 		rc = smblib_get_prop_batt_charge_done(chg, val);
@@ -2549,6 +2553,8 @@ static int smb2_probe(struct platform_device *pdev)
 	chg->irq_info = smb2_irqs;
 	chg->name = "PMI";
 #ifdef CONFIG_MACH_ASUS_X00T
+	wake_lock_init(&asus_chg_lock, WAKE_LOCK_SUSPEND, "asus_chg_lock");
+
 	/* ASUS BSP: add globe device struct */
 	smbchg_dev = chg;
 
@@ -2795,6 +2801,7 @@ static int smb2_resume(struct device *dev)
 	if (!asus_get_prop_usb_present(smbchg_dev))
 		return 0;
 
+	asus_smblib_stay_awake(smbchg_dev);
 	mtNow = current_kernel_time();
 
 	/* BSP Austin_Tseng: if next JEITA time less than 30s,
@@ -2806,6 +2813,7 @@ static int smb2_resume(struct device *dev)
 		cancel_delayed_work(&smbchg_dev->asus_batt_RTC_work);
 	} else {
 		smblib_asus_monitor_start(smbchg_dev, nextJEITAinterval * 1000);
+		asus_smblib_relax(smbchg_dev);
 	}
 
 	return 0;

@@ -2105,15 +2105,7 @@ static int fg_adjust_recharge_soc(struct fg_chip *chip)
 				chip->recharge_soc_adjusted = true;
 			} else {
 				/* adjusted already, do nothing */
-				if (chip->health != POWER_SUPPLY_HEALTH_GOOD)
-					return 0;
-
-				/*
-				 * Device is out of JEITA so restore the
-				 * default value
-				 */
-				new_recharge_soc = recharge_soc;
-				chip->recharge_soc_adjusted = false;
+				return 0;
 			}
 		} else {
 			if (!chip->recharge_soc_adjusted)
@@ -3212,7 +3204,7 @@ module_param_cb(restart, &fg_restart_ops, &fg_restart, 0644);
 static int fg_get_time_to_full_locked(struct fg_chip *chip, int *val)
 {
 	int rc, ibatt_avg, vbatt_avg, rbatt, msoc, full_soc, act_cap_mah,
-		i_cc2cv = 0, soc_cc2cv, tau, divisor, iterm, ttf_mode,
+		i_cc2cv, soc_cc2cv, tau, divisor, iterm, ttf_mode,
 		i, soc_per_step, msoc_this_step, msoc_next_step,
 		ibatt_this_step, t_predicted_this_step, ttf_slope,
 		t_predicted_cv, t_predicted = 0;
@@ -4846,8 +4838,8 @@ static int fg_parse_ki_coefficients(struct fg_chip *chip)
 #define DEFAULT_RECHARGE_SOC_THR	95
 #define DEFAULT_BATT_TEMP_COLD		0
 #define DEFAULT_BATT_TEMP_COOL		5
-#define DEFAULT_BATT_TEMP_WARM		50
-#define DEFAULT_BATT_TEMP_HOT		60
+#define DEFAULT_BATT_TEMP_WARM		45
+#define DEFAULT_BATT_TEMP_HOT		50
 #define DEFAULT_CL_START_SOC		15
 #define DEFAULT_CL_MIN_TEMP_DECIDEGC	150
 #define DEFAULT_CL_MAX_TEMP_DECIDEGC	450
@@ -5052,8 +5044,6 @@ static int fg_parse_dt(struct fg_chip *chip)
 			pr_warn("Error reading Jeita thresholds, default values will be used rc:%d\n",
 				rc);
 	}
-	chip->dt.jeita_thresholds[JEITA_WARM] = 97;
-	chip->dt.jeita_thresholds[JEITA_HOT] = 97;
 
 	if (of_property_count_elems_of_size(node,
 		"qcom,battery-thermal-coefficients",
@@ -5420,14 +5410,12 @@ static int fg_gen3_probe(struct platform_device *pdev)
 	/* Keep BATT_MISSING_IRQ disabled until we require it */
 	vote(chip->batt_miss_irq_en_votable, BATT_MISS_IRQ_VOTER, false, 0);
 
-#ifdef CONFIG_DEBUG_FS
 	rc = fg_debugfs_create(chip);
 	if (rc < 0) {
 		dev_err(chip->dev, "Error in creating debugfs entries, rc:%d\n",
 			rc);
 		goto exit;
 	}
-#endif
 
 	rc = fg_get_battery_voltage(chip, &volt_uv);
 	if (!rc)
