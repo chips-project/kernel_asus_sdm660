@@ -592,6 +592,7 @@ typedef enum nxpTfaDescriptorType {
 	dscCfMem,		// coolflux memory x,y,io
 	dscSetFwkUseCase,
 	dscSetVddpConfig,
+	dscTfaHal, 
 	dsc_last		// trailer
 } nxpTfaDescriptorType_t;
 

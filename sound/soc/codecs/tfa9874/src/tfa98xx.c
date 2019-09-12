@@ -148,9 +148,7 @@ static enum tfa_error tfa98xx_tfa_start(struct tfa98xx *tfa98xx, int next_profil
 	ktime_t start_time, stop_time;
 	u64 delta_time;
 
-	if (trace_level & 8) {
-		start_time = ktime_get_boottime();
-	}
+	start_time = ktime_get_boottime();
 
 	err = tfa_dev_start(tfa98xx->tfa, next_profile, vstep);
 
@@ -455,7 +453,7 @@ static ssize_t tfa98xx_dbgfs_start_set(struct file *file,
 	enum tfa_error ret;
 	char buf[32];
 	const char ref[] = "please calibrate now";
-	int buf_size, cal_profile = 0;
+	int buf_size;
 
 	/* check string length, and account for eol */
 	if (count > sizeof(ref) + 1 || count < (sizeof(ref) - 1))
@@ -472,17 +470,10 @@ static ssize_t tfa98xx_dbgfs_start_set(struct file *file,
 
 	mutex_lock(&tfa98xx->dsp_lock);
 	ret = tfa_calibrate(tfa98xx->tfa);
-	if (ret == tfa_error_ok) {
-		cal_profile = tfaContGetCalProfile(tfa98xx->tfa);
-		if (cal_profile < 0) {
-			pr_warn("[0x%x] Calibration profile not found\n",
-			        tfa98xx->i2c->addr);
-		}
-
-		ret = tfa98xx_tfa_start(tfa98xx, cal_profile, tfa98xx->vstep);
-	}
 	if (ret == tfa_error_ok)
-			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE,0);
+		ret = tfa98xx_tfa_start(tfa98xx, tfa98xx->profile, tfa98xx->vstep);
+	if (ret == tfa_error_ok)
+			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE);
 	mutex_unlock(&tfa98xx->dsp_lock);
 
 	if (ret) {
@@ -1110,7 +1101,7 @@ static int tfa98xx_set_vstep(struct snd_kcontrol *kcontrol,
 	if (change) {
 		list_for_each_entry(tfa98xx, &tfa98xx_device_list, list) {
 			mutex_lock(&tfa98xx->dsp_lock);
-			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE,0);
+			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE);
 			mutex_unlock(&tfa98xx->dsp_lock);
 		}
 	}
@@ -1223,7 +1214,7 @@ static int tfa98xx_set_profile(struct snd_kcontrol *kcontrol,
 	if (change) {
 		list_for_each_entry(tfa98xx, &tfa98xx_device_list, list) {
 			mutex_lock(&tfa98xx->dsp_lock);
-			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE,0);
+			tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE);
 			mutex_unlock(&tfa98xx->dsp_lock);
 		}
 	}
@@ -2093,8 +2084,10 @@ static void tfa98xx_container_loaded(const struct firmware *cont, void *context)
 	if (tfa98xx->tfa->tfa_family == 2) {
 		mutex_lock(&tfa98xx->dsp_lock);
 		ret = tfa98xx_tfa_start(tfa98xx, tfa98xx->profile, tfa98xx->vstep);
-		if (ret == Tfa98xx_Error_Not_Supported)
+		if (ret == Tfa98xx_Error_Not_Supported) {
+			pr_err("Error loading settings on internal clock\n");
 			tfa98xx->dsp_fw_state = TFA98XX_DSP_FW_FAIL;
+		}
 		mutex_unlock(&tfa98xx->dsp_lock);
 	}
 
@@ -2220,7 +2213,11 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 					ret, tfa98xx->init_count);
 			reschedule = true;
 		} else {
-			sync = true;
+			mutex_lock(&tfa98xx_mutex);
+			if (tfa98xx_sync_count < tfa98xx_device_count)
+				tfa98xx_sync_count++;
+			mutex_unlock(&tfa98xx_mutex);
+			sync = true;			
 
 			/* Subsystem ready, tfa init complete */
 			tfa98xx->dsp_init = TFA98XX_DSP_INIT_DONE;
@@ -2257,10 +2254,6 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 		/* check if all devices have started */
 		bool do_sync;
 		mutex_lock(&tfa98xx_mutex);
-
-		if (tfa98xx_sync_count < tfa98xx_device_count)
-			tfa98xx_sync_count++;
-
 		do_sync = (tfa98xx_sync_count >= tfa98xx_device_count);
 		mutex_unlock(&tfa98xx_mutex);
 
@@ -2269,7 +2262,7 @@ static void tfa98xx_dsp_init(struct tfa98xx *tfa98xx)
 			tfa98xx_sync_count = 0;
 			list_for_each_entry(tfa98xx, &tfa98xx_device_list, list) {
 				mutex_lock(&tfa98xx->dsp_lock);
-				tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE,0);
+				tfa_dev_set_state(tfa98xx->tfa, TFA_STATE_UNMUTE);
 
 				/*
 				 * start monitor thread to check IC status bit
@@ -2375,7 +2368,8 @@ static int tfa98xx_startup(struct snd_pcm_substream *substream,
 		return 0;
 
 	if (tfa98xx->dsp_fw_state != TFA98XX_DSP_FW_OK) {
-		dev_info(codec->dev, "Container file not loaded\n");
+		dev_info(codec->dev, "Container file not loaded (state=%d)\n",
+		         tfa98xx->dsp_fw_state);
 		return -EINVAL;
 	}
 
@@ -2552,13 +2546,9 @@ static int tfa98xx_mute(struct snd_soc_dai *dai, int mute, int stream)
 			tfa98xx->cstream = 1;
 
 		/* Start DSP */
-#if 0		
 		if (tfa98xx->dsp_init != TFA98XX_DSP_INIT_PENDING)
 			queue_delayed_work(tfa98xx->tfa98xx_wq,
 			                   &tfa98xx->init_work, 0);
-#else
-		 tfa98xx_dsp_init(tfa98xx);
-#endif//	
 	}
 
 	return 0;
@@ -2940,6 +2930,7 @@ static int tfa98xx_i2c_probe(struct i2c_client *i2c,
 				ret);
 			return -EIO;
 		}
+		dev_info(&i2c->dev, "TFA REVID:0x%04X", reg);
 		switch (reg & 0xff) {
 		case 0x72: /* tfa9872 */
 			pr_info("TFA9872 detected\n");
