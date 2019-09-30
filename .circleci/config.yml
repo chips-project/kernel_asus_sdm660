@@ -46,6 +46,12 @@ jobs:
 workflows:
   version: 2
   BakingIt:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only: lineage-16.0
     jobs:
       - do_SendInfo
       - do_Bake1:
