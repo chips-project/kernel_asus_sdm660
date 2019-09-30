@@ -4,7 +4,7 @@ jobs:
     docker:
       - image: najahi/oven:latest
     environment:
-      is_test: true
+      is_test: false
     steps:
       - run: git clone https://github.com/najahiiii/kernel_asus_sdm660 --depth=1 -b lineage-16.0 .
       - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/sendInfo
@@ -15,7 +15,7 @@ jobs:
       - image: najahi/oven:latest
     working_directory: ~/do_Bake1
     environment:
-      is_test: true
+      is_test: false
     steps:
       - run: git clone https://github.com/najahiiii/kernel_asus_sdm660 --depth=1 -b lineage-16.0 .
       - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/do_bake1
@@ -26,7 +26,7 @@ jobs:
       - image: najahi/oven:latest
     working_directory: ~/do_Bake2
     environment:
-      is_test: true
+      is_test: false
     steps:
       - run: git clone https://github.com/najahiiii/kernel_asus_sdm660 --depth=1 -b lineage-16.0 .
       - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/do_bake2
@@ -37,7 +37,7 @@ jobs:
       - image: najahi/oven:latest
     working_directory: ~/do_Bake3
     environment:
-      is_test: true
+      is_test: false
     steps:
       - run: git clone https://github.com/najahiiii/kernel_asus_sdm660 --depth=1 -b lineage-16.0 .
       - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/do_bake3
