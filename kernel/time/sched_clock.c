@@ -294,8 +294,8 @@ static int sched_clock_suspend(void)
 
 	suspend_ns = rd->epoch_ns;
 	suspend_cycles = rd->epoch_cyc;
-	pr_info("suspend ns:%17llu	suspend cycles:%17llu\n",
-				rd->epoch_ns, rd->epoch_cyc);
+	pr_info("suspend ns:%17llu\n", rd->epoch_ns);
+	pr_info("suspend cycles:%17llu\n", rd->epoch_cyc);
 	hrtimer_cancel(&sched_clock_timer);
 	rd->read_sched_clock = suspended_sched_clock_read;
 
