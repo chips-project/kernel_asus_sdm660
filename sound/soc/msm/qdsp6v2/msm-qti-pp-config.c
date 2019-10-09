@@ -888,14 +888,11 @@ int msm_adsp_init_mixer_ctl_pp_event_queue(struct snd_soc_pcm_runtime *rtd)
 	kctl = snd_soc_card_get_kcontrol(rtd->card, mixer_str);
 	kfree(mixer_str);
 	if (!kctl) {
-		pr_err("%s: failed to get kctl.\n", __func__);
 		ret = -EINVAL;
 		goto done;
 	}
 
 	if (kctl->private_data != NULL) {
-		pr_err("%s: kctl_prtd is not NULL at initialization.\n",
-			__func__);
 		return -EINVAL;
 	}
 
