@@ -502,7 +502,7 @@ void sar_int_config(int state, struct pinctrl * pin)
 		pr_err("[sx9310 error]  sarsensor pinctrl set  state error!");
 		return;
 	}
-	pr_info("[sx9301 ]  sarsensor pinctrl set  state sucess!");
+	pr_debug("[sx9301 ]  sarsensor pinctrl set  state sucess!");
 }
 
 /*********************************************************************/
@@ -645,7 +645,7 @@ static ssize_t sx9310_register_write_store(struct device *dev,
 	}
 
 	write_register(this, (unsigned char)regist, (unsigned char)val);
-	pr_info("[SX9310]: %s - Register(0x%x) data(0x%x)\n",
+	pr_debug("[SX9310]: %s - Register(0x%x) data(0x%x)\n",
 		__func__, regist, val);
 
 	return count;
@@ -984,7 +984,7 @@ static int sx9310_get_nirq_state(void)
 		pr_err("sx9310 irq_gpio was not assigned properly");
 	}
 	value = gpio_get_value(PSX9310Device->hw->irq_gpio);
-	pr_info("sx9310 irq gpio status(%d)", value);
+	pr_debug("sx9310 irq gpio status(%d)", value);
 	return !value;
 }
 
@@ -1042,7 +1042,7 @@ static int sx9310_power_ctl(sx93XX_t *data, bool on)
 		msleep(10);	/* wait 10ms */
 		data->power_enabled = on;
 	} else {
-		pr_info("Power on=%d. enabled=%d\n", on, data->power_enabled);
+		pr_debug("Power on=%d. enabled=%d\n", on, data->power_enabled);
 	}
 
 	return ret;
@@ -1162,7 +1162,7 @@ static ssize_t capsensor_config_write_proc(struct file *filp,
 	if (sscanf(buffer, "%u", &val) != 1)
 		return -EINVAL;
 
-	pr_info("%s val = %u\n", __func__, val);
+	pr_debug("%s val = %u\n", __func__, val);
 	if (val) {
 		if (!sx9310_enable && psx93XX_this) {
 #ifdef USE_THREADED_IRQ
@@ -1183,7 +1183,7 @@ static ssize_t capsensor_config_write_proc(struct file *filp,
 			write_register(psx93XX_this, 0x00, 0xff);
 		} else {
 			if (psx93XX_this)
-				pr_info("sx9310 has already enabled.\n");
+				pr_debug("sx9310 has already enabled.\n");
 		}
 	} else {
 		if (sx9310_enable && psx93XX_this) {
@@ -1191,7 +1191,7 @@ static ssize_t capsensor_config_write_proc(struct file *filp,
 			write_register(psx93XX_this, 0x10, 0x50);
 		} else {
 			if (psx93XX_this)
-				pr_info("sx9310 has already disabled.\n");
+				pr_debug("sx9310 has already disabled.\n");
 		}
 	}
 
@@ -1436,15 +1436,15 @@ static int sx9310_probe(struct i2c_client *client,
 		}
 #if 0
 		read_register(this, SX9310_IRQSTAT_TOUCH_FLAG, &reg_value);
-		pr_info("read SX9310_IRQSTAT_TOUCH_FLAG is 0x%x\n", reg_value);
+		pr_debug("read SX9310_IRQSTAT_TOUCH_FLAG is 0x%x\n", reg_value);
 
 		returnValue = write_register(this, SX9310_CPS_CTRL18_REG, 0x20);
 		read_register(this, SX9310_CPS_CTRL18_REG, &reg_value);
-		pr_info("read SX9310_CPS_CTRL18_REG is 0x%x\n", reg_value);
+		pr_debug("read SX9310_CPS_CTRL18_REG is 0x%x\n", reg_value);
 
 		returnValue = write_register(this, SX9310_CPS_CTRL19_REG, 0xFF);
 		read_register(this, SX9310_CPS_CTRL19_REG, &reg_value);
-		pr_info("read SX9310_CPS_CTRL19_REG is 0x%x\n", reg_value);
+		pr_debug("read SX9310_CPS_CTRL19_REG is 0x%x\n", reg_value);
 #endif
 		sx93XX_init(this);
 
@@ -1460,10 +1460,10 @@ static int sx9310_probe(struct i2c_client *client,
 		    proc_create(PROC_CAPSENSOR_FILE, 0660, NULL,
 				&config_proc_ops);
 		if (capsensor_proc == NULL) {
-			pr_info("create_proc_entry %s failed\n",
+			pr_debug("create_proc_entry %s failed\n",
 				PROC_CAPSENSOR_FILE);
 		} else {
-			pr_info("create proc entry %s success",
+			pr_debug("create proc entry %s success",
 				PROC_CAPSENSOR_FILE);
 		}
 		printk("zch sar---sx9310_probe success\n");
@@ -1518,7 +1518,7 @@ static int sx9310_suspend(struct i2c_client *client, pm_message_t mesg)
 	if (sx9310_enable)
 		sx93XX_suspend(this);
 
-	pr_info("%s\n", __func__);
+	pr_debug("%s\n", __func__);
 	return 0;
 }
 
@@ -1529,7 +1529,7 @@ static int sx9310_resume(struct i2c_client *client)
 
 	if (sx9310_enable)
 		sx93XX_resume(this);
-	pr_info("%s\n", __func__);
+	pr_debug("%s\n", __func__);
 	return 0;
 }
 
@@ -1565,13 +1565,13 @@ static struct i2c_driver sx9310_driver = {
 
 static int __init sx9310_init(void)
 {
-	pr_info("%s\n", __func__);
+	pr_debug("%s\n", __func__);
 	return i2c_add_driver(&sx9310_driver);
 }
 
 static void __exit sx9310_exit(void)
 {
-	pr_info("%s\n", __func__);
+	pr_debug("%s\n", __func__);
 	i2c_del_driver(&sx9310_driver);
 }
 
