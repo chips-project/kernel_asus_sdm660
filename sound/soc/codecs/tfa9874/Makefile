@@ -16,11 +16,7 @@ endif
 
 ifneq ($(KERNELRELEASE),)
 
-# debugging support (also enables trace_printk)
-EXTRA_CFLAGS += -DDEBUG
-
 EXTRA_CFLAGS += -I$(src)/inc
-EXTRA_CFLAGS += -Werror
 
 obj-$(CONFIG_SND_SOC_TFA9874) := snd-soc-tfa9874.o
 
@@ -28,11 +24,6 @@ snd-soc-tfa9874-objs += src/tfa98xx.o
 snd-soc-tfa9874-objs += src/tfa_container.o
 snd-soc-tfa9874-objs += src/tfa_dsp.o
 snd-soc-tfa9874-objs += src/tfa_init.o
-
-ifdef TFA_DEBUG
-EXTRA_CFLAGS += -DTFA_DEBUG -DDEBUG
-snd-soc-tfa9874-objs += src/tfa_debug.o
-endif
 
 ifeq ($(CONFIG_MACH_ASUS_X00T),y)
 EXTRA_CFLAGS += -DTFA9874_NONDSP_STEREO
