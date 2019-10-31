@@ -928,7 +928,7 @@ static void touchProcess(psx93XX_t this)
 				if (((i & pCurrentButton->mask) ==
 				     pCurrentButton->mask)) {
 					/* User pressed button */
-					dev_info(this->pdev,
+					dev_dbg(this->pdev,
 						 "cap button %d touched\n",
 						 counter);
 					/*
@@ -949,7 +949,7 @@ static void touchProcess(psx93XX_t this)
 				if (((i & pCurrentButton->mask) !=
 				     pCurrentButton->mask)) {
 					/* User released button */
-					dev_info(this->pdev,
+					dev_dbg(this->pdev,
 						 "cap button %d released\n",
 						 counter);
 					/*
