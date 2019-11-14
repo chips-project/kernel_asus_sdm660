@@ -110,12 +110,12 @@ static void asus_smblib_rerun_aicl(struct smb_charger *chg)
 extern struct wakeup_source asus_chg_lock;
 void asus_smblib_stay_awake(struct smb_charger *chg)
 {
-	__pm_stay_awake(&asus_chg_lock);
+	pm_stay_awake(&asus_chg_lock);
 }
 
 void asus_smblib_relax(struct smb_charger *chg)
 {
-	__pm_relax(&asus_chg_lock);
+	pm_relax(&asus_chg_lock);
 }
 #endif /* CONFIG_MACH_ASUS_X00T */
 
@@ -1180,10 +1180,11 @@ static int smblib_awake_vote_callback(struct votable *votable, void *data,
 {
 	struct smb_charger *chg = data;
 
-	if (awake)
+	if (awake) {
 		pm_stay_awake(chg->dev);
-	else
+	} else {
 		pm_relax(chg->dev);
+	}
 
 	return 0;
 }
