@@ -64,17 +64,6 @@ jobs:
       - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/do_bake2
       - run: chmod +x do_bake2
       - run: bash do_bake2
-  do_Bake3:
-    docker:
-      - image: najahi/oven:latest
-    working_directory: ~/do_Bake3
-    environment:
-      is_test: false
-    steps:
-      - run: git clone https://github.com/najahiiii/kernel_asus_sdm660 --depth=1 -b lineage-16.0 .
-      - run: wget https://raw.githubusercontent.com/najahiiii/Noob-Script/noob/ci/circle/do_bake3
-      - run: chmod +x do_bake3
-      - run: bash do_bake3
 workflows:
   version: 2
   Continuous-HotOven:
@@ -99,8 +88,5 @@ workflows:
           requires:
             - do_SendInfo
       - do_Bake2:
-          requires:
-            - do_SendInfo
-      - do_Bake3:
           requires:
             - do_SendInfo
