@@ -75,10 +75,10 @@ workflows:
       - do_testBake2:
           requires:
             - do_testSendInfo
-  Nightly-HotOven:
+  Weekly-HotOven:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 0 * * 0"
           filters:
             branches:
               only: lineage-16.0
